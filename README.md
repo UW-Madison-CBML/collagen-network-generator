@@ -1,2 +1,5 @@
-# synthetic_SHG
-Synthetic SHG image generation. Currently only in 2D but will be extended to 3D
+# Collagen Network Generator
+
+Generate synthetic SHG microscopy images of collagen networks.
+
+Deployed on Streamlit [here](https://collagen-network-generator.streamlit.app)
