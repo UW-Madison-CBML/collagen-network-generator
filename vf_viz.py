@@ -234,7 +234,6 @@ def plot_all_wells(wells, X, Y, hard_mask, save_path=None):
 
 
 # Hard boundaries
-
 def plot_hard_boundaries(wells, X, Y, hard_mask, save_path=None):
     # Two-panel plot: (left) the boolean hard_mask as an image,
     # (right) each ellipse outline drawn analytically on a clean axes.

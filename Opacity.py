@@ -75,11 +75,15 @@ def connectivity_gap(s_frac, aux_L_conn, cfg=None):
     return float(np.clip(gap, cfg["gap_min"], 1.0))
 
 
-def stamp_opacity(table, fiber_i, s_frac, aux_L_conn, cfg=None):
+# Added modulate to take care of rasterization issue
+# modulate=True makes the bumpy looking fibers
+def stamp_opacity(table, fiber_i, s_frac, aux_L_conn, cfg=None, modulate=False):
     # Combined brightness multiplier at one stamp position:
     #   fiber_base[i] -- per-fiber average brightness
     #   shg           -- along-fiber phase pulsation (primary effect)
     #   gap           -- connectivity breaks
+    if not modulate:
+        return table.fiber_base[fiber_i]
     shg = shg_along_fiber(table, fiber_i, s_frac, cfg)
     gap = connectivity_gap(s_frac, aux_L_conn, cfg)
     return table.fiber_base[fiber_i] * shg * gap

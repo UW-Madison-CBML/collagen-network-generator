@@ -80,22 +80,44 @@ def generate_synthetic_shg(
     susceptibility_bias = L_align if L_susceptibility is None else L_susceptibility
     aux_susceptibility = splinesamp.per_spline_auxiliary_values(susceptibility_bias, len(seeds), rng)
 
-    fibers = [
-        splinesamp.generate_fiber(
-            Qx, Qy, s, step_size=1.0, spline_length=spline_length, L_curve=L_curve,
-            susceptibility=aux_susceptibility[i], rng=rng,
-        )
-        for i, s in enumerate(seeds)
-    ]
-    smoothing = 0.8 + 5.0 * (1 - L_curve)
-    num_samples = max(100, int(4 * spline_length))
-    splines = [splinesamp.fit_spline(f, smoothing=smoothing, num_samples=num_samples) for f in fibers]
+
+    # fibers = [
+    #     splinesamp.generate_fiber(
+    #         Qx, Qy, s, step_size=1.0, spline_length=spline_length, L_curve=L_curve,
+    #         susceptibility=aux_susceptibility[i], rng=rng,
+    #     )
+    #     for i, s in enumerate(seeds)
+    # ]
 
     aux_L_curve, aux_L_conn = vecfield.sample_aux_at_seeds(seeds, aux_curve_field, aux_conn_field)
     aux_L_wave_freq = vecfield.sample_field_at_seeds(seeds, aux_wave_freq_field)
 
+    # Adding sinusoidal_fiber_offset
+    fibers = [
+        splinesamp.sinusoidal_fiber_offset(
+
+            splinesamp.generate_fiber(
+                Qx, Qy, s, step_size=1.0, spline_length=spline_length, L_curve=L_curve,
+                susceptibility=aux_susceptibility[i], rng=rng,
+            ),
+            wave_amp=aux_L_curve[i],
+            wave_freq=aux_L_wave_freq[i],
+            rng=rng,
+        )
+        for i, s in enumerate(seeds)
+
+    ]
+
+
+    smoothing = 0.8 + 5.0 * (1 - L_curve)
+    num_samples = max(100, int(4 * spline_length))
+    splines = [splinesamp.fit_spline(f, smoothing=smoothing, num_samples=num_samples) for f in fibers]
+
     opacity_rng = np.random.default_rng(seed + 1234)
     opacity_table = opacity.build_fiber_opacity_table(len(splines), opacity_rng)
+
+
+
 
     if not minimal:
         np.savez_compressed(
