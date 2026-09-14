@@ -422,6 +422,9 @@ with col_right:
     st.session_state.num_fibers    = st.slider("Count",     20,  800, st.session_state.num_fibers,    step=10)
     st.session_state.spline_length = st.slider("Length",    20,  400, st.session_state.spline_length, step=5)
     st.session_state.thickness     = st.slider("Thickness", 0.5, 10.0,st.session_state.thickness,    step=0.5)
+    st.session_state.wave_amplitude_px     = st.slider("Wave amplitude", 0.5, 5.0,st.session_state.wave_amplitude_px,    step=0.5)
+    st.session_state.wave_wavelength_px     = st.slider("Wave wavelength", 0.5, .0,st.session_state.wave_wavelength_px,    step=0.5)
+
     st.markdown("---")
     _sec("Alignment")
     st.session_state.G_align = st.slider("Global align", 0.0, 1.0, st.session_state.G_align, step=0.01)
@@ -484,6 +487,9 @@ with col_mid:
             curve_field, conn_field = make_fiber_aux_fields(shape, st.session_state.L_curve, st.session_state.L_conn, rng)
             wave_freq_field = make_wave_freq_field(shape, st.session_state.L_wave_freq, rng)
 
+            wave_amplitude_px = int(st.sessions_state.wave_amplitude_px)
+            wave_wavelength_px = int(st.sessions_state.wave_wavelength_px)
+
             num_fibers    = int(st.session_state.num_fibers)
             spline_length = int(st.session_state.spline_length)
             seeds         = sample_seeds_from_density(D, num_fibers, L_density=0.5, rng=rng)
@@ -495,7 +501,12 @@ with col_mid:
             for i, seed_pt in enumerate(seeds):
                 raw = generate_fiber(Qx, Qy, seed_pt, step_size=1.0, spline_length=spline_length,
                                      L_curve=st.session_state.L_curve, susceptibility=1.0-aux_curve[i], rng=rng)
-                off = sinusoidal_fiber_offset(raw, wave_amp=aux_curve[i], wave_freq=aux_wave_freq[i], rng=rng)
+                off = sinusoidal_fiber_offset(
+                    raw, wave_amp=aux_curve[i], wave_freq=aux_wave_freq[i], 
+                    wave_amplitude_px=wave_amplitude_px,
+                    wave_wavelength_px=wave_wavelength_px,
+                    rng=rng
+                )
                 splines.append(fit_spline(off, num_samples=max(50, spline_length*2)))
 
             raster = rasterize_splines(H=shape[0], W=shape[1], splines=splines,
