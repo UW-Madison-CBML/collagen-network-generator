@@ -272,6 +272,7 @@ with col_left:
 # (G_density, L_density, G_conn) are stored but not used by sliders.
 # spline_num  → num_fibers
 # fiber_width_px → thickness (default 2.5 kept where not specified)
+
 PRESETS = {
     "RED": {
         "label": "RED",
@@ -422,8 +423,8 @@ with col_right:
     st.session_state.num_fibers    = st.slider("Count",     20,  800, st.session_state.num_fibers,    step=10)
     st.session_state.spline_length = st.slider("Length",    20,  400, st.session_state.spline_length, step=5)
     st.session_state.thickness     = st.slider("Thickness", 0.5, 10.0,st.session_state.thickness,    step=0.5)
-    st.session_state.wave_amplitude_px     = st.slider("Wave amplitude", 0.5, 5.0,st.session_state.wave_amplitude_px,    step=0.5)
-    st.session_state.wave_wavelength_px     = st.slider("Wave wavelength", 0.5, .0,st.session_state.wave_wavelength_px,    step=0.5)
+    # st.session_state.wave_amplitude_px     = st.slider("Wave amplitude", 0.5, 5.0,st.session_state.wave_amplitude_px,    step=0.5)
+    # st.session_state.wave_wavelength_px     = st.slider("Wave wavelength", 0.5, .0,st.session_state.wave_wavelength_px,    step=0.5)
 
     st.markdown("---")
     _sec("Alignment")
