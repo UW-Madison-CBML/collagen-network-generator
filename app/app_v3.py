@@ -504,8 +504,8 @@ with col_mid:
                                      L_curve=st.session_state.L_curve, susceptibility=1.0-aux_curve[i], rng=rng)
                 off = sinusoidal_fiber_offset(
                     raw, wave_amp=aux_curve[i], wave_freq=aux_wave_freq[i], 
-                    wave_amplitude_px=wave_amplitude_px,
-                    wave_wavelength_px=wave_wavelength_px,
+                    # wave_amplitude_px=wave_amplitude_px,
+                    # wave_wavelength_px=wave_wavelength_px,
                     rng=rng
                 )
                 splines.append(fit_spline(off, num_samples=max(50, spline_length*2)))
