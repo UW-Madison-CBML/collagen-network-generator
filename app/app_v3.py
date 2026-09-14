@@ -488,8 +488,8 @@ with col_mid:
             curve_field, conn_field = make_fiber_aux_fields(shape, st.session_state.L_curve, st.session_state.L_conn, rng)
             wave_freq_field = make_wave_freq_field(shape, st.session_state.L_wave_freq, rng)
 
-            wave_amplitude_px = int(st.sessions_state.wave_amplitude_px)
-            wave_wavelength_px = int(st.sessions_state.wave_wavelength_px)
+            # wave_amplitude_px = int(st.sessions_state.wave_amplitude_px)
+            # wave_wavelength_px = int(st.sessions_state.wave_wavelength_px)
 
             num_fibers    = int(st.session_state.num_fibers)
             spline_length = int(st.session_state.spline_length)
