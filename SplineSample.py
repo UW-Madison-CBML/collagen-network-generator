@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
 from scipy.interpolate import make_splprep
+from typing import Optional
 
 def sample_vector(vx, vy, pos, ref_dir=None):
     # Sample the axial/nematic orientation field (vx=Qx=cos(2*theta),
@@ -117,6 +118,41 @@ def integrate_streamline(
 
     return np.array(pts)
 
+
+
+# adds sinusoidal offset to the fiber points
+def sinusoidal_fiber_offset(pts: np.ndarray, rng: np.random.Generator,
+                            wave_amplitude_px: float = 2.8, wave_wavelength_px: Optional[float] = None,
+                            wave_amp: Optional[np.ndarray] = None, wave_freq: Optional[np.ndarray] = None
+                            ) -> np.ndarray:
+    if pts.ndim != 2 or pts.shape[1] != 2 or pts.size == 0:
+        return pts
+
+    base_wavelength = wave_wavelength_px if wave_wavelength_px is not None else 12.0#max(4.0 * thickness, 6.0)
+    wavelength = base_wavelength * (0.5 + wave_freq)
+
+    wave_amp = wave_amplitude_px * wave_amp
+
+    seg = np.diff(pts, axis=0)
+    seg_len = np.sqrt((seg ** 2).sum(axis=1))
+    cum_len = np.concatenate([[0.0], np.cumsum(seg_len)])
+    total_len = cum_len[-1]
+
+    if total_len < 1e-6:
+        return pts
+
+    n_cycles = total_len / wavelength
+
+    phase_offset = rng.uniform(0, 2 * np.pi)
+    s_frac = cum_len / total_len
+    wave = wave_amp * np.sin(2.0 * np.pi * n_cycles * s_frac + phase_offset)
+
+    tangent = seg / (seg_len[:, None] + 1e-8)
+    normal = np.column_stack([-tangent[:, 1], tangent[:, 0]])
+    normal = np.vstack([normal[0], normal])
+
+    offset_pts = pts + normal * wave[:, None]
+    return offset_pts
 
 def generate_fiber(
     vx, vy, seed, step_size=1.0, max_steps=None, spline_length=None,

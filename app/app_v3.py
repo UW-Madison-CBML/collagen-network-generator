@@ -12,13 +12,31 @@ import streamlit as st
 import streamlit.components.v1 as components
 from PIL import Image
 
-from shg_backend import (
-    _well_weight_and_tangent, create_grid, fit_spline,
-    generate_custom_fields_from_canvas, generate_fiber,
-    make_fiber_aux_fields, make_global_orientation, make_wave_freq_field,
-    rasterize_splines, relax, sample_field_at_seeds,
-    sample_seeds_from_density, sinusoidal_fiber_offset,
-)
+from typing import Optional
+
+# from shg_backend import (
+#     _well_weight_and_tangent, create_grid, fit_spline,
+#     generate_custom_fields_from_canvas, generate_fiber,
+#     make_fiber_aux_fields, make_global_orientation, make_wave_freq_field,
+#     rasterize_splines, relax, sample_field_at_seeds,
+#     sample_seeds_from_density, sinusoidal_fiber_offset,
+# )
+
+import sys
+from pathlib import Path
+
+current_dir = Path(__file__).resolve().parent
+
+project_root = current_dir.parent 
+
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# 4. Now use an absolute import (remove the dots "..")
+from VectorField import _well_weight_and_tangent, create_grid, make_fiber_aux_fields, make_global_orientation, make_wave_freq_field, relax, sample_field_at_seeds
+from SplineSample import fit_spline, sample_seeds_from_density, generate_fiber, sinusoidal_fiber_offset
+from shg_backend import ( generate_custom_fields_from_canvas)
+from Rasterize import rasterize_splines
 
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(page_title="SHG Simulator", layout="wide", initial_sidebar_state="collapsed")
@@ -249,6 +267,115 @@ with col_left:
       </div>
     </div>""", unsafe_allow_html=True)
 
+# ── Presets ─────────────────────────────────────────────────────────────────────
+# Mapped from legacy synthetic_class_params. Fields not present in current UI
+# (G_density, L_density, G_conn) are stored but not used by sliders.
+# spline_num  → num_fibers
+# fiber_width_px → thickness (default 2.5 kept where not specified)
+PRESETS = {
+    "RED": {
+        "label": "RED",
+        "color": "#f87171",
+        "desc":  "High density, high alignment, short fibers",
+        "params": {
+            "G_align":       0.7,
+            "L_align":       0.6,
+            "G_curve":       0.5,
+            "L_curve":       0.0,
+            "L_conn":        0.3,
+            "L_wave_freq":   0.25,
+            "num_fibers":    1200,
+            "spline_length": 50,
+            "thickness":     2.5,
+        },
+    },
+    "YELLOW_BAD": {
+        "label": "YELLOW BAD",
+        "color": "#fbbf24",
+        "desc":  "Low alignment, moderate density, short fibers",
+        "params": {
+            "G_align":       0.4,
+            "L_align":       0.0,
+            "G_curve":       0.5,
+            "L_curve":       0.0,
+            "L_conn":        0.3,
+            "L_wave_freq":   0.25,
+            "num_fibers":    1200,
+            "spline_length": 50,
+            "thickness":     2.5,
+        },
+    },
+    "YELLOW_GOOD": {
+        "label": "YELLOW GOOD",
+        "color": "#fde68a",
+        "desc":  "Very high density, moderate curve, many short fibers",
+        "params": {
+            "G_align":       0.2,
+            "L_align":       0.6,
+            "G_curve":       0.7,
+            "L_curve":       0.0,
+            "L_conn":        0.3,
+            "L_wave_freq":   0.25,
+            "num_fibers":    800,   # capped at slider max 800 (orig 3000)
+            "spline_length": 50,
+            "thickness":     2.5,
+        },
+    },
+    "INTERESTING": {
+        "label": "INTERESTING",
+        "color": "#a78bfa",
+        "desc":  "Balanced alignment and density",
+        "params": {
+            "G_align":       0.5,
+            "L_align":       0.5,
+            "G_curve":       0.5,
+            "L_curve":       0.0,
+            "L_conn":        0.3,
+            "L_wave_freq":   0.25,
+            "num_fibers":    1200,
+            "spline_length": 50,
+            "thickness":     2.5,
+        },
+    },
+    "CYAN": {
+        "label": "CYAN",
+        "color": "#22d3ee",
+        "desc":  "Balanced — same base as INTERESTING",
+        "params": {
+            "G_align":       0.5,
+            "L_align":       0.5,
+            "G_curve":       0.5,
+            "L_curve":       0.0,
+            "L_conn":        0.3,
+            "L_wave_freq":   0.25,
+            "num_fibers":    1200,
+            "spline_length": 50,
+            "thickness":     2.5,
+        },
+    },
+    "ORANGE": {
+        "label": "ORANGE",
+        "color": "#fb923c",
+        "desc":  "Balanced — test configuration",
+        "params": {
+            "G_align":       0.5,
+            "L_align":       0.5,
+            "G_curve":       0.5,
+            "L_curve":       0.0,
+            "L_conn":        0.3,
+            "L_wave_freq":   0.25,
+            "num_fibers":    1200,
+            "spline_length": 50,
+            "thickness":     2.5,
+        },
+    },
+}
+
+def apply_preset(key):
+    p = PRESETS[key]["params"]
+    for k, v in p.items():
+        st.session_state[k] = v
+
 # ══════════════════════════════════════════════════════════════════════════════
 # RIGHT — Parameters
 # ══════════════════════════════════════════════════════════════════════════════
@@ -257,6 +384,40 @@ with col_right:
         st.markdown(f"<div style='color:#475569;font-size:10px;font-weight:700;letter-spacing:.07em;"
                     f"text-transform:uppercase;margin:10px 0 6px'>{label}</div>", unsafe_allow_html=True)
 
+    # ── Preset selector ────────────────────────────────────────────────────────
+    _sec("Presets")
+
+    # Build colored preset buttons via HTML — one per row for legibility
+    for preset_key, preset in PRESETS.items():
+        col_dot, col_btn = st.columns([0.08, 0.92], gap="small")
+        with col_dot:
+            st.markdown(
+                f"<div style='width:10px;height:10px;border-radius:50%;"
+                f"background:{preset['color']};margin-top:10px'></div>",
+                unsafe_allow_html=True,
+            )
+        with col_btn:
+            if st.button(preset["label"], key=f"preset_{preset_key}", use_container_width=True):
+                apply_preset(preset_key)
+                st.rerun()
+
+    # Show description of active preset (whichever matches current params)
+    active_preset = None
+    for pk, pv in PRESETS.items():
+        if all(abs(st.session_state.get(k, 0) - v) < 0.01
+               for k, v in pv["params"].items()):
+            active_preset = pv
+            break
+    if active_preset:
+        st.markdown(
+            f"<div style='background:#1e2535;border:1px solid {active_preset['color']}44;"
+            f"border-radius:6px;padding:6px 9px;font-size:10px;color:#94a3b8;margin-top:2px'>"
+            f"<span style='color:{active_preset['color']};font-weight:700'>{active_preset['label']}</span>"
+            f" — {active_preset['desc']}</div>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("---")
     _sec("Fiber")
     st.session_state.num_fibers    = st.slider("Count",     20,  800, st.session_state.num_fibers,    step=10)
     st.session_state.spline_length = st.slider("Length",    20,  400, st.session_state.spline_length, step=5)
