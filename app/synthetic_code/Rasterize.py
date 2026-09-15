@@ -1,18 +1,18 @@
 import numpy as np
 
-import Opacity as opacity
+from . import Opacity as opacity
 
 
-def _prep_aux(values, n_sp, default):
-    """Coerce a per-spline array (or None) to length n_sp, padding with default."""
-    if values is None:
-        return np.full(n_sp, float(default), dtype=np.float64)
-    arr = np.asarray(values, dtype=np.float64).ravel()
-    if arr.size < n_sp:
-        arr = np.pad(arr, (0, n_sp - arr.size), constant_values=default)
-    return arr[:n_sp]
+# def _prep_aux(values, n_sp, default):
+#     """Coerce a per-spline array (or None) to length n_sp, padding with default."""
+#     if values is None:
+#         return np.full(n_sp, float(default), dtype=np.float64)
+#     arr = np.asarray(values, dtype=np.float64).ravel()
+#     if arr.size < n_sp:
+#         arr = np.pad(arr, (0, n_sp - arr.size), constant_values=default)
+#     return arr[:n_sp]
 
-# Removed any amplitude or freq from here and moved to the spline step
+
 def rasterize_splines(
     H,
     W,
@@ -129,7 +129,7 @@ def rasterize_splines(
                 #     y += wobble * ny_n
                 #     x += wobble * nx_n
 
-                op = opacity.stamp_opacity(opacity_table, i, s_frac, cn, cfg) #modulate=False is default
+                op = opacity.stamp_opacity(opacity_table, i, s_frac, cn, cfg)
                 stamp = op * stamp_damp
 
                 iy, ix = int(round(y)), int(round(x))

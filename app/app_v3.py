@@ -33,10 +33,82 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # 4. Now use an absolute import (remove the dots "..")
-from VectorField import _well_weight_and_tangent, create_grid, make_fiber_aux_fields, make_global_orientation, make_wave_freq_field, relax, sample_field_at_seeds
-from SplineSample import fit_spline, sample_seeds_from_density, generate_fiber, sinusoidal_fiber_offset
-from shg_backend import ( generate_custom_fields_from_canvas)
-from Rasterize import rasterize_splines
+# from VectorField import _well_weight_and_tangent, create_grid, make_fiber_aux_fields, make_global_orientation, make_wave_freq_field, relax, sample_field_at_seeds
+# from SplineSample import fit_spline, sample_seeds_from_density, generate_fiber, sinusoidal_fiber_offset
+# from shg_backend import ( generate_custom_fields_from_canvas)
+# from Rasterize import rasterize_splines
+
+from synthetic_code.VectorField import *
+from synthetic_code.SplineSample import *
+from synthetic_code.Rasterize import *
+
+
+def generate_custom_fields_from_canvas(
+    density_configs: list, 
+    well_configs: list,
+    shape: Tuple[int, int]
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Generates continuous density maps and well array from interactive GUI inputs.
+    
+    Parameters:
+        density_configs: List of dicts for density points [{"x", "y", "w", "h", "intensity"}, ...]
+        well_configs: List of dicts for wells [{"x", "y", "w", "h", "angle"}, ...]
+        shape: Tuple (H, W) canvas dimensions.
+        
+    Returns:
+        D: Density Map
+        wells: Formatted well array for alignment [cx, cy, ax, ay, phi]
+        hard_zero_mask: Mask of well interiors
+    """
+    H, W = shape
+    D = np.zeros((H, W), dtype=np.float64)
+    hard_zero_mask = np.zeros((H, W), dtype=bool)
+    Y_grid, X_grid = np.ogrid[:H, :W]
+
+    # Process Density Points
+    for cfg in density_configs:
+        pt_x, pt_y = cfg["x"], cfg["y"]
+        sigma_x = max(1.0, float(cfg["w"]))
+        sigma_y = max(1.0, float(cfg["h"]))
+        intensity = float(cfg["intensity"])
+
+        gauss = intensity * np.exp(
+            -(((X_grid - pt_x) ** 2) / (2.0 * sigma_x ** 2) + ((Y_grid - pt_y) ** 2) / (2.0 * sigma_y ** 2))
+        )
+        D += gauss
+
+    # Process Wells
+    wells_list = []
+    for cfg in well_configs:
+        wx, wy = cfg["x"], cfg["y"]
+        ax_px = max(1.0, float(cfg["w"]))
+        ay_px = max(1.0, float(cfg["h"]))
+        phi = np.radians(float(cfg.get("angle", 0.0)))
+
+        # Center and radii normalized to [0, 1]
+        cx, cy = wx / W, wy / H
+        ax, ay = ax_px / W, ay_px / H
+        wells_list.append([cx, cy, ax, ay, phi])
+
+        # Compute hard interior zero-mask for fiber exclusion
+        dx = X_grid - wx
+        dy = Y_grid - wy
+        ca, sa = np.cos(-phi), np.sin(-phi)
+        xr = ca * dx + sa * dy
+        yr = -sa * dx + ca * dy
+        
+        r2 = (xr / (ax_px + 1e-8))**2 + (yr / (ay_px + 1e-8))**2
+        hard_zero_mask |= (r2 <= 1.0)
+
+    # Zero out density inside structural wells
+    D[hard_zero_mask] = 0.0
+    wells = np.array(wells_list, dtype=np.float64) if wells_list else np.empty((0, 5))
+
+    return D, wells, hard_zero_mask
+
+
+
 
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(page_title="SHG Simulator", layout="wide", initial_sidebar_state="collapsed")
@@ -106,6 +178,8 @@ _ss("show_density", True)
 _ss("show_vectors", True)
 _ss("show_splines", True)
 _ss("show_quiver",  True)
+_ss("wave_amplitude_px", None)
+_ss("wave_wavelength_px", None)
 
 # ── Encode / decode helpers ────────────────────────────────────────────────────
 def to_b64(arr):
@@ -153,7 +227,7 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size,
     ax.set_xlim(0, image_size); ax.set_ylim(image_size, 0); ax.axis("off")
 
     if show_density:
-        ax.imshow(D, cmap="viridis", origin="upper",
+        ax.imshow(D, cmap="magma", origin="upper",
                   extent=[0, image_size, image_size, 0], alpha=1.0)
 
     if show_quiver and Qx is not None:
@@ -164,15 +238,16 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size,
         R, C = np.meshgrid(rows, cols, indexing="ij")
         # Recover fiber angle from double-angle representation
         # Q = (cos2θ, sin2θ)  →  θ = 0.5 * arctan2(Qy, Qx)
-        theta = 0.5 * np.arctan2(Qy[R, C], Qx[R, C])
+        theta = 0.5 * np.arctan2(Qy[R, C], Qx[R, C]) # axial_to_theta()
+
         # In image coords: x=col (rightward), y=row (downward)
         # Fiber tangent: (cos θ, sin θ) in standard math coords
         # In image display with ylim inverted: u=cosθ (right), v=sinθ (down matches image y-down)
         u =  np.cos(theta)
-        v =  np.sin(theta)
+        v =  -np.sin(theta)
         ax.quiver(C, R, u, v,
-                  color="white", headlength=0, headaxislength=0,
-                  pivot="middle", scale=26, alpha=0.55, width=0.003)
+                  color="white", headlength=0, headaxislength=0, #no arrow head
+                  pivot="middle", scale=26, alpha=0.55, width=0.003) 
 
     if show_splines and splines:
         for sp in splines:
@@ -423,8 +498,8 @@ with col_right:
     st.session_state.num_fibers    = st.slider("Count",     20,  800, st.session_state.num_fibers,    step=10)
     st.session_state.spline_length = st.slider("Length",    20,  400, st.session_state.spline_length, step=5)
     st.session_state.thickness     = st.slider("Thickness", 0.5, 10.0,st.session_state.thickness,    step=0.5)
-    # st.session_state.wave_amplitude_px     = st.slider("Wave amplitude", 0.5, 5.0,st.session_state.wave_amplitude_px,    step=0.5)
-    # st.session_state.wave_wavelength_px     = st.slider("Wave wavelength", 0.5, .0,st.session_state.wave_wavelength_px,    step=0.5)
+    st.session_state.wave_amplitude_px     = st.slider("Wave amplitude", 0.5, 5.0,st.session_state.wave_amplitude_px,    step=0.5)
+    st.session_state.wave_wavelength_px     = st.slider("Wave wavelength", 0.5, .0,st.session_state.wave_wavelength_px,    step=0.5)
 
     st.markdown("---")
     _sec("Alignment")
@@ -488,8 +563,8 @@ with col_mid:
             curve_field, conn_field = make_fiber_aux_fields(shape, st.session_state.L_curve, st.session_state.L_conn, rng)
             wave_freq_field = make_wave_freq_field(shape, st.session_state.L_wave_freq, rng)
 
-            # wave_amplitude_px = int(st.sessions_state.wave_amplitude_px)
-            # wave_wavelength_px = int(st.sessions_state.wave_wavelength_px)
+            wave_amplitude_px = int(st.session_state.wave_amplitude_px)
+            wave_wavelength_px = int(st.session_state.wave_wavelength_px)
 
             num_fibers    = int(st.session_state.num_fibers)
             spline_length = int(st.session_state.spline_length)
