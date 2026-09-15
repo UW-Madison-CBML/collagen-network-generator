@@ -274,8 +274,11 @@ with col_left:
 # fiber_width_px → thickness (default 2.5 kept where not specified)
 
 PRESETS = {
+
+    #syn.generate_synthetic_shg(seed=11, G_align=0.7, G_density=0.7, G_curve=0.5, G_conn=1, L_align=0.6, L_density=0, L_conn=0.3, L_curve=0, L_intensity=0.5, spline_length=50, spline_num=1200)
+    #
     "RED": {
-        "label": "RED",
+        "label": "Type 1 (Cancerous Tending)",
         "color": "#f87171",
         "desc":  "High density, high alignment, short fibers",
         "params": {
@@ -290,67 +293,69 @@ PRESETS = {
             "thickness":     2.5,
         },
     },
-    "YELLOW_BAD": {
-        "label": "YELLOW BAD",
+    "YELLOW_BAD": { # syn.generate_synthetic_shg(seed=10, G_align=0.4, G_density=0.7, G_curve=0, G_conn=1, L_align=0.3, L_density=0.4, L_conn=1, L_curve=0, spline_length=60, spline_num=1200)
+
+        "label": "Type 2 (Non-cancerous Tending)",
         "color": "#fbbf24",
         "desc":  "Low alignment, moderate density, short fibers",
         "params": {
             "G_align":       0.4,
-            "L_align":       0.0,
-            "G_curve":       0.5,
+            "L_align":       0.3,
+            "G_curve":       0.0,
             "L_curve":       0.0,
-            "L_conn":        0.3,
+            "L_conn":        1,
             "L_wave_freq":   0.25,
             "num_fibers":    1200,
-            "spline_length": 50,
+            "spline_length": 60,
             "thickness":     2.5,
         },
     },
-    "YELLOW_GOOD": {
-        "label": "YELLOW GOOD",
+    "YELLOW_GOOD": {# syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=0.7, G_conn=1, L_align=1, L_density=0.6, L_conn=0.3, L_curve=0, spline_length=70, spline_num=1200)
+        "label": "Type 3 (Non-cancerous Tending)",
         "color": "#fde68a",
         "desc":  "Very high density, moderate curve, many short fibers",
         "params": {
             "G_align":       0.2,
-            "L_align":       0.6,
+            "L_align":       1,
             "G_curve":       0.7,
             "L_curve":       0.0,
             "L_conn":        0.3,
             "L_wave_freq":   0.25,
             "num_fibers":    800,   # capped at slider max 800 (orig 3000)
-            "spline_length": 50,
+            "spline_length": 70,
             "thickness":     2.5,
         },
     },
-    "INTERESTING": {
-        "label": "INTERESTING",
+    "INTERESTING": { # syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=1, G_conn=1, L_align=0.6, L_density=0.55, L_conn=1, L_curve=0, spline_length=40, spline_num=3000)
+        "label": "Type 4 (Non-cancerous Tending)",
         "color": "#a78bfa",
         "desc":  "Balanced alignment and density",
         "params": {
-            "G_align":       0.5,
-            "L_align":       0.5,
-            "G_curve":       0.5,
+            "G_align":       0.2,
+            "L_align":       0.6,
+            "G_curve":       1,
             "L_curve":       0.0,
-            "L_conn":        0.3,
+            "L_conn":        1,
             "L_wave_freq":   0.25,
-            "num_fibers":    1200,
-            "spline_length": 50,
+            "num_fibers":    3000,
+            "spline_length": 40,
             "thickness":     2.5,
         },
     },
-    "CYAN": {
-        "label": "CYAN",
+    "CYAN": { #syn.generate_synthetic_shg(seed=10, G_align=0.95, G_density=0.7, G_curve=0, G_conn=1, L_align=0.6, L_density=0.4, L_conn=1, L_curve=0.6, spline_length=60, spline_num=1200, wave_amplitude_px=6, wave_wavelength_px=30, L_wave_freq=0.5)
+
+        "label": "Type 5 (Cancerous Tending)",
         "color": "#22d3ee",
-        "desc":  "Balanced — same base as INTERESTING",
+        "desc":  "",
         "params": {
-            "G_align":       0.5,
-            "L_align":       0.5,
-            "G_curve":       0.5,
-            "L_curve":       0.0,
-            "L_conn":        0.3,
+            "G_align":       0.95,
+            "L_align":       0.6,
+            "G_curve":       0.0,
+            "L_curve":       0.6,
+            "L_conn":        1,
             "L_wave_freq":   0.25,
             "num_fibers":    1200,
-            "spline_length": 50,
+            "spline_length": 60,
             "thickness":     2.5,
         },
     },
