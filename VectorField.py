@@ -143,7 +143,8 @@ def make_density(W, hard_zero_mask, G_density, L_density, rng):
     return np.clip(D, 0.0, None)
 
 
-def make_global_orientation(shape, G_align, G_curve, rng):
+def make_global_orientation(shape, G_align, G_curve, rng, basex=None, basey=None, basemag=None):
+    
     theta0 = rng.uniform(0, np.pi)
     ny, nx = shape
     x = np.linspace(0, 1, nx)
@@ -164,7 +165,13 @@ def make_global_orientation(shape, G_align, G_curve, rng):
     ry = Y - cy
     theta_circle = np.arctan2(ry, rx) + (np.pi / 2)
 
-    theta_base = (1.0 - g) * theta0 + g * theta_circle
+    if(basex is not None and basey is not None and basemag is not None):
+        baseo = np.where(basemag>0.001, np.arctan2(basey, basex), 0.0)
+        basemag = np.clip(basemag, 0,1)
+        
+        theta_base = (1.0 - g) * (basemag*baseo + (1-basemag)*theta0) + g * theta_circle
+    else:
+        theta_base = (1.0 - g) * theta0 + g * theta_circle
 
     phi = gaussian_filter(rng.normal(size=shape), sigma=40 * G_align + 5)
     phi = (phi - phi.mean()) / (phi.std() + 1e-8)

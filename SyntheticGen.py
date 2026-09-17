@@ -37,6 +37,8 @@ def generate_synthetic_shg(
     show_plots=True,
     save_prefix="synthetic",
     minimal=False,
+    Image3d = False,
+    layers = 5
 ):
     rng = np.random.default_rng(seed)
 

@@ -12,6 +12,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 from PIL import Image
 
+from typing import List, Tuple, Optional, Dict, Any
+
 from typing import Optional
 
 # from shg_backend import (
@@ -33,14 +35,14 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # 4. Now use an absolute import (remove the dots "..")
-# from VectorField import _well_weight_and_tangent, create_grid, make_fiber_aux_fields, make_global_orientation, make_wave_freq_field, relax, sample_field_at_seeds
-# from SplineSample import fit_spline, sample_seeds_from_density, generate_fiber, sinusoidal_fiber_offset
-# from shg_backend import ( generate_custom_fields_from_canvas)
-# from Rasterize import rasterize_splines
+from VectorField import _well_weight_and_tangent, create_grid, make_fiber_aux_fields, make_global_orientation, make_wave_freq_field, relax, sample_field_at_seeds
+from SplineSample import fit_spline, sample_seeds_from_density, generate_fiber, sinusoidal_fiber_offset
+from shg_backend import ( generate_custom_fields_from_canvas)
+from Rasterize import rasterize_splines
 
-from synthetic_code.VectorField import *
-from synthetic_code.SplineSample import *
-from synthetic_code.Rasterize import *
+# from synthetic_code.VectorField import *
+# from synthetic_code.SplineSample import *
+# from synthetic_code.Rasterize import *
 
 
 def generate_custom_fields_from_canvas(
@@ -178,7 +180,7 @@ _ss("show_density", True)
 _ss("show_vectors", True)
 _ss("show_splines", True)
 _ss("show_quiver",  True)
-_ss("wave_amplitude_px", None)
+_ss("wave_amplitude_px", 2.8)
 _ss("wave_wavelength_px", None)
 
 # ── Encode / decode helpers ────────────────────────────────────────────────────
@@ -434,22 +436,22 @@ PRESETS = {
             "thickness":     2.5,
         },
     },
-    "ORANGE": {
-        "label": "ORANGE",
-        "color": "#fb923c",
-        "desc":  "Balanced — test configuration",
-        "params": {
-            "G_align":       0.5,
-            "L_align":       0.5,
-            "G_curve":       0.5,
-            "L_curve":       0.0,
-            "L_conn":        0.3,
-            "L_wave_freq":   0.25,
-            "num_fibers":    1200,
-            "spline_length": 50,
-            "thickness":     2.5,
-        },
-    },
+    # "ORANGE": {
+    #     "label": "ORANGE",
+    #     "color": "#fb923c",
+    #     "desc":  "Balanced — test configuration",
+    #     "params": {
+    #         "G_align":       0.5,
+    #         "L_align":       0.5,
+    #         "G_curve":       0.5,
+    #         "L_curve":       0.0,
+    #         "L_conn":        0.3,
+    #         "L_wave_freq":   0.25,
+    #         "num_fibers":    1200,
+    #         "spline_length": 50,
+    #         "thickness":     2.5,
+    #     },
+    # },
 }
 
 def apply_preset(key):
@@ -503,19 +505,19 @@ with col_right:
     st.session_state.num_fibers    = st.slider("Count",     20,  800, st.session_state.num_fibers,    step=10)
     st.session_state.spline_length = st.slider("Length",    20,  400, st.session_state.spline_length, step=5)
     st.session_state.thickness     = st.slider("Thickness", 0.5, 10.0,st.session_state.thickness,    step=0.5)
-    st.session_state.wave_amplitude_px     = st.slider("Wave amplitude", 0.5, 5.0,st.session_state.wave_amplitude_px,    step=0.5)
-    st.session_state.wave_wavelength_px     = st.slider("Wave wavelength", 0.5, .0,st.session_state.wave_wavelength_px,    step=0.5)
+    # st.session_state.wave_amplitude_px     = st.slider("Wave amplitude", 0.5, 5.0,st.session_state.wave_amplitude_px,    step=0.5)
+    # st.session_state.wave_wavelength_px     = st.slider("Wave wavelength", 0.5, .0,st.session_state.wave_wavelength_px,    step=0.5)
 
     st.markdown("---")
     _sec("Alignment")
     st.session_state.G_align = st.slider("Global align", 0.0, 1.0, st.session_state.G_align, step=0.01)
-    st.session_state.L_align = st.slider("Local relax",  0.0, 1.0, st.session_state.L_align, step=0.01)
+    st.session_state.L_align = st.slider("Local align",  0.0, 1.0, st.session_state.L_align, step=0.01)
     st.session_state.G_curve = st.slider("Global curve", 0.0, 1.0, st.session_state.G_curve, step=0.01)
     st.session_state.L_curve = st.slider("Local curve",  0.0, 1.0, st.session_state.L_curve, step=0.01)
     st.markdown("---")
     _sec("Texture")
     st.session_state.L_conn      = st.slider("Connectivity", 0.0, 1.0, st.session_state.L_conn,      step=0.01)
-    st.session_state.L_wave_freq = st.slider("Wobble freq",  0.0, 1.0, st.session_state.L_wave_freq, step=0.01)
+    st.session_state.L_wave_freq = st.slider("Wavelength",  0.0, 1.0, st.session_state.L_wave_freq, step=0.01)
     st.markdown("---")
     _sec("Seed")
     st.session_state.seed = st.number_input("Random seed", value=int(st.session_state.seed), step=1)
@@ -546,7 +548,20 @@ with col_mid:
             D = np.where(hard_mask, 0.0, D_raw)
 
             # Global orientation field
-            Qx_g, Qy_g = make_global_orientation(shape, st.session_state.G_align, st.session_state.G_curve, rng)
+            # base_field = np.atan2(st.session_state.vec_qx_arr,st.session_state.vec_qy_arr)
+            # basex = np.array(st.session_state.vec_qx_arr)
+            # basey = np.array(st.session_state.vec_qy_arr)
+            # basemag = np.array(st.session_state.vec_mag_arr)
+            # basex = basex.reshape(CANVAS_SIZE,CANVAS_SIZE)
+            # basey = basey.reshape(CANVAS_SIZE,CANVAS_SIZE)
+            # basemag = basemag.reshape(CANVAS_SIZE,CANVAS_SIZE)
+            # Qx_g, Qy_g = make_global_orientation(shape, st.session_state.G_align, st.session_state.G_curve, rng,
+            #                                      basex=basex,
+            #                                      basey =basey,
+            #                                      basemag = basemag
+            #                                     )
+
+            Qx_g, Qy_g = make_global_orientation(shape, st.session_state.G_align, st.session_state.G_curve, rng,)
 
             # Blend with user-painted vector field
             Qx_g, Qy_g = blend_orientation(
@@ -568,8 +583,8 @@ with col_mid:
             curve_field, conn_field = make_fiber_aux_fields(shape, st.session_state.L_curve, st.session_state.L_conn, rng)
             wave_freq_field = make_wave_freq_field(shape, st.session_state.L_wave_freq, rng)
 
-            wave_amplitude_px = int(st.session_state.wave_amplitude_px)
-            wave_wavelength_px = int(st.session_state.wave_wavelength_px)
+            # wave_amplitude_px = int(st.session_state.wave_amplitude_px)
+            # wave_wavelength_px = int(st.session_state.wave_wavelength_px)
 
             num_fibers    = int(st.session_state.num_fibers)
             spline_length = int(st.session_state.spline_length)
@@ -581,14 +596,16 @@ with col_mid:
             splines = []
             for i, seed_pt in enumerate(seeds):
                 raw = generate_fiber(Qx, Qy, seed_pt, step_size=1.0, spline_length=spline_length,
-                                     L_curve=st.session_state.L_curve, susceptibility=1.0-aux_curve[i], rng=rng)
+                                     L_curve=st.session_state.L_curve, susceptibility=st.session_state.L_align, rng=rng)
                 off = sinusoidal_fiber_offset(
                     raw, wave_amp=aux_curve[i], wave_freq=aux_wave_freq[i], 
                     # wave_amplitude_px=wave_amplitude_px,
                     # wave_wavelength_px=wave_wavelength_px,
                     rng=rng
                 )
-                splines.append(fit_spline(off, num_samples=max(50, spline_length*2)))
+                smoothing = 0.8 + 5.0 * (1 - st.session_state.L_curve)
+                num_samples = max(100, int(4 * spline_length))
+                splines.append(fit_spline(off, smoothing= smoothing, num_samples=num_samples))
 
             raster = rasterize_splines(H=shape[0], W=shape[1], splines=splines,
                                        thickness=float(st.session_state.thickness),

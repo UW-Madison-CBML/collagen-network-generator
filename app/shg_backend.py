@@ -195,25 +195,25 @@ def make_density(W: np.ndarray, hard_zero_mask: np.ndarray, G_density: float, L_
     return np.clip(D, 0.0, None)
 
 
-def make_global_orientation(shape: Tuple[int, int], G_align: float, G_curve: float, rng: np.random.Generator) -> Tuple[np.ndarray, np.ndarray]:
-    theta0 = rng.uniform(0, np.pi)
-    ny, nx = shape
-    X, Y = np.meshgrid(np.linspace(0, 1, nx), np.linspace(0, 1, ny))
-    g = float(np.clip(G_curve, 0.0, 1.0))
+# def make_global_orientation(shape: Tuple[int, int], G_align: float, G_curve: float, rng: np.random.Generator) -> Tuple[np.ndarray, np.ndarray]:
+#     theta0 = rng.uniform(0, np.pi)
+#     ny, nx = shape
+#     X, Y = np.meshgrid(np.linspace(0, 1, nx), np.linspace(0, 1, ny))
+#     g = float(np.clip(G_curve, 0.0, 1.0))
 
-    psi = rng.uniform(0, 2 * np.pi)
-    u = np.array([np.cos(psi), np.sin(psi)])
-    r_center = g * 1.28 + (1.0 - g) * 34.0
-    cx, cy = 0.5 + r_center * u[0], 0.5 + r_center * u[1]
+#     psi = rng.uniform(0, 2 * np.pi)
+#     u = np.array([np.cos(psi), np.sin(psi)])
+#     r_center = g * 1.28 + (1.0 - g) * 34.0
+#     cx, cy = 0.5 + r_center * u[0], 0.5 + r_center * u[1]
 
-    theta_circle = np.arctan2(Y - cy, X - cx) + (np.pi / 2)
-    theta_base = (1.0 - g) * theta0 + g * theta_circle
+#     theta_circle = np.arctan2(Y - cy, X - cx) + (np.pi / 2)
+#     theta_base = (1.0 - g) * theta0 + g * theta_circle
 
-    phi = gaussian_filter(rng.normal(size=shape), sigma=40 * G_align + 5)
-    phi = (phi - phi.mean()) / (phi.std() + 1e-8)
-    theta = theta_base + 0.6 * (1 - G_align) * phi
+#     phi = gaussian_filter(rng.normal(size=shape), sigma=40 * G_align + 5)
+#     phi = (phi - phi.mean()) / (phi.std() + 1e-8)
+#     theta = theta_base + 0.6 * (1 - G_align) * phi
 
-    return np.cos(2 * theta), np.sin(2 * theta)
+#     return np.cos(2 * theta), np.sin(2 * theta)
 
 
 def _well_weight_and_tangent(X: np.ndarray, Y: np.ndarray, wells: np.ndarray, Qx_ref: np.ndarray, Qy_ref: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
