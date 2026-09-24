@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background:#0d1117; font-family:Inter,system-ui,sans-serif; overflow-x:hidden; user-select:none; }
+body { background:#0d1117; font-family:Inter,system-ui,sans-serif; overflow-x:hidden; user-select:none;
+       overscroll-behavior: none; }
 #root { display:flex; flex-direction:column; gap:8px; padding:6px 6px 10px; width:100%; }
 
 .toolbar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:2px 0 4px; min-height:32px; }
@@ -31,8 +32,10 @@ input[type=range].purple::-webkit-slider-thumb { background:#a78bfa; }
 #cvMain, #cvOver, #cvVec {
   position:absolute; top:0; left:0; width:100%!important; height:100%!important; border-radius:7px;
 }
-#cvOver { pointer-events:auto; }
+#cvOver { pointer-events:auto; touch-action:none; }
 #cvVec  { pointer-events:none; display:none; }
+/* Prevent scroll/zoom on the whole canvas area during touch painting */
+.cv-outer { touch-action:none; }
 #cursor-ring { position:absolute; pointer-events:none; border-radius:50%; border:2px solid #4ade8080; background:#4ade8010; display:none; transform:translate(-50%,-50%); }
 
 .well-panel { width:100%; background:#1e2535; border:1px solid #f59e0b55; border-radius:8px; padding:10px 12px; display:none; flex-direction:column; gap:8px; }
@@ -95,7 +98,7 @@ let vecMagF32=null;    // [N*N]  accumulated paint weight 0..1
 let wells=[];
 let selWell=-1, hovWell=-1;
 let tool="paint";
-let brushSz=100, brushStr=60;
+let brushSz=36, brushStr=60;
 
 // Density stroke tracking
 let painting=false, lastX=-1, lastY=-1;
@@ -133,7 +136,9 @@ function setup(){
   mainCtx=cvMain.getContext("2d");
   vecCtx=cvVec.getContext("2d");
   attachEvents(cvOver);
-  window.addEventListener("mouseup", onWindowMouseUp);
+  window.addEventListener("mouseup",    onWindowMouseUp);
+  window.addEventListener("touchend",   onWindowMouseUp, {passive:false});
+  window.addEventListener("touchcancel",onWindowMouseUp, {passive:false});
   buildSaveRow();
   initialized=true;
 }
@@ -597,12 +602,51 @@ function canvasXY(e){
   return[(e.clientX-r.left)*(N/r.width),(e.clientY-r.top)*(N/r.height)];
 }
 
+// Extract first touch point as a mouse-like {clientX, clientY} object
+function touchPoint(e){ const t=e.touches[0]||e.changedTouches[0]; return{clientX:t.clientX,clientY:t.clientY}; }
+
 // Track last movement direction for vec cursor (even when not painting)
 let moveLastX=-1, moveLastY=-1, moveDirX=1, moveDirY=0;
 
 function attachEvents(cv){
+  // ── Touch wrappers — preventDefault stops scroll; then reuse mouse logic ──
+  cv.addEventListener("touchstart", e=>{
+    e.preventDefault();          // ← stops parent scroll / pinch-zoom
+    onPointerDown(touchPoint(e));
+  }, {passive:false});           // passive:false required for preventDefault to work
+
+  cv.addEventListener("touchmove", e=>{
+    e.preventDefault();
+    onPointerMove(touchPoint(e));
+  }, {passive:false});
+
+  cv.addEventListener("touchend", e=>{
+    e.preventDefault();
+    onPointerUp();
+  }, {passive:false});
+
+  cv.addEventListener("touchcancel", e=>{
+    e.preventDefault();
+    onPointerUp();
+  }, {passive:false});
+
+  // ── Mouse events ──
   cv.addEventListener("mousedown",e=>{
     e.preventDefault();
+    onPointerDown(e);
+  });
+  cv.addEventListener("mousemove",e=>{ onPointerMove(e); });
+  cv.addEventListener("mouseup",   onCanvasMouseUp);
+  cv.addEventListener("mouseleave",()=>{
+    cursorRing.style.display="none";
+    vecCtx.clearRect(0,0,N,N);
+    moveDirX=1; moveDirY=0; moveLastX=-1; moveLastY=-1;
+    hovWell=-1;
+  });
+}
+
+// ── Unified pointer-down (mouse or touch) ─────────────────────────────────────
+function onPointerDown(e){
     const[x,y]=canvasXY(e);
     if(MODE==="density"){
       if(tool==="vec"){
@@ -627,9 +671,10 @@ function attachEvents(cv){
       }
     }
     moveLastX=x; moveLastY=y;
-  });
+}
 
-  cv.addEventListener("mousemove",e=>{
+// ── Unified pointer-move (mouse or touch) ─────────────────────────────────────
+function onPointerMove(e){
     const[x,y]=canvasXY(e);
     const sc=dispScale();
     // Track movement direction for cursor preview
@@ -669,15 +714,6 @@ function attachEvents(cv){
         render();
       } else if(hovWell!==prevH){render();}
     }
-  });
-
-  cv.addEventListener("mouseup", onCanvasMouseUp);
-  cv.addEventListener("mouseleave",()=>{
-    cursorRing.style.display="none";
-    vecCtx.clearRect(0,0,N,N);
-    moveDirX=1; moveDirY=0; moveLastX=-1; moveLastY=-1;
-    hovWell=-1;
-  });
 }
 
 function finishVecStroke(){
