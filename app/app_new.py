@@ -12,7 +12,7 @@ try:
 except ImportError:
     CANVAS_AVAILABLE = False
 
-from shg_backend import (
+from app.shg_backend import (
     create_grid,
     make_wells,
     make_density,
