@@ -183,6 +183,10 @@ _ss("show_quiver",  True)
 _ss("wave_amplitude_px", 2.8)
 _ss("wave_wavelength_px", None)
 
+_ss("n_layers",  1)
+_ss("depth", 1.0)
+_ss("focal_plane", 0.0)
+
 # ── Encode / decode helpers ────────────────────────────────────────────────────
 def to_b64(arr):
     return base64.b64encode(arr.astype(np.float32).tobytes()).decode()
@@ -521,6 +525,10 @@ with col_right:
     st.markdown("---")
     _sec("Seed")
     st.session_state.seed = st.number_input("Random seed", value=int(st.session_state.seed), step=1)
+    _sec("3D layers")
+    st.session_state.n_layers = st.slider("layers", 1,20, value=int(st.session_state.n_layers), step=1)
+    st.session_state.depth = st.slider("z depth", 0.5,50.0, value=(st.session_state.depth), step=0.1)
+    st.session_state.focal_plane = st.slider("focal plane %", 0.0,1.0,value=(st.session_state.focal_plane), step=0.1)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MIDDLE — Render & Output
@@ -607,9 +615,23 @@ with col_mid:
                 num_samples = max(100, int(4 * spline_length))
                 splines.append(fit_spline(off, smoothing= smoothing, num_samples=num_samples))
 
-            raster = rasterize_splines(H=shape[0], W=shape[1], splines=splines,
+            splines_np = np.array(splines, dtype=object)
+            layers = np.array_split(splines_np, st.session_state.n_layers, axis=0)
+
+            imgs = [
+                rasterize_splines(H=shape[0], W=shape[1], splines=l,
                                        thickness=float(st.session_state.thickness),
                                        aux_L_conn=aux_conn, intensity_seed=int(st.session_state.seed))
+                for i, l in enumerate(layers)
+            ]
+
+            raster = np.zeros_like(imgs[0])
+            for i, img in enumerate(imgs):
+                d_val = i*st.session_state.depth/st.session_state.n_layers
+                defocus = abs(d_val - st.session_state.focal_plane*st.session_state.depth)
+                sigma = float(defocus * 3)
+            
+                raster += gaussian_filter(img, sigma=sigma)
 
             st.session_state.shg_image   = raster
             st.session_state.shg_splines = splines
