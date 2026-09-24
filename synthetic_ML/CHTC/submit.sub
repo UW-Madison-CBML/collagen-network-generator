@@ -1,0 +1,23 @@
+Universe   = container
+container_image = docker://lsvaren/transformers2
+Executable = run.sh
+
+transfer_input_files = SHG_generation.py, Opacity.py, Rasterize.py, SplineSample.py, SyntheticGen.py. VectorField.py
+
+#+WantGPULab = true
++WantFlock = true
+Requirements = (Target.HasCHTCStaging == true) && (Machine != "gpu4003.chtc.wisc.edu")
+#Requirements = (Machine != "bhaskargpu4000.chtc.wisc.edu")
+#gpus_minimum_capability = 7.5
+#gpus_minimum_memory = 30 GB
+request_memory = 30 GB
+request_disk = 10 GB
+request_cpus = 2
+#request_gpus = 1
+
+batch_name = SHG
+output = SHG.out
+error  = SHG.err
+log    = SHG.log
+
+queue
