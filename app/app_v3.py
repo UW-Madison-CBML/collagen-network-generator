@@ -35,14 +35,14 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # 4. Now use an absolute import (remove the dots "..")
-from VectorField import _well_weight_and_tangent, create_grid, make_fiber_aux_fields, make_global_orientation, make_wave_freq_field, relax, sample_field_at_seeds
-from SplineSample import fit_spline, sample_seeds_from_density, generate_fiber, sinusoidal_fiber_offset
-from shg_backend import ( generate_custom_fields_from_canvas)
-from Rasterize import rasterize_splines
+# from VectorField import _well_weight_and_tangent, create_grid, make_fiber_aux_fields, make_global_orientation, make_wave_freq_field, relax, sample_field_at_seeds
+# from SplineSample import fit_spline, sample_seeds_from_density, generate_fiber, sinusoidal_fiber_offset
+# from shg_backend import ( generate_custom_fields_from_canvas)
+# from Rasterize import rasterize_splines
 
-# from synthetic_code.VectorField import *
-# from synthetic_code.SplineSample import *
-# from synthetic_code.Rasterize import *
+from synthetic_code.VectorField import *
+from synthetic_code.SplineSample import *
+from synthetic_code.Rasterize import *
 
 
 def generate_custom_fields_from_canvas(

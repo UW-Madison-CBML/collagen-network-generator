@@ -80,6 +80,7 @@ def rasterize_splines(
     #     wave_wavelength_px if wave_wavelength_px is not None
     #     else max(4.0 * thickness, 6.0)
     # )
+    
 
     for i, spline in enumerate(splines):
         pts = np.asarray(spline)
