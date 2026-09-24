@@ -1,0 +1,12 @@
+img_path: /staging/groups/bhaskar_group
+img_size: 512
+
+batchsize: 128
+lr: 0.0001
+epochs: 200
+
+team: svaren-uni
+project: UNET
+dir: /tmp/wandb
+
+save_dir: /staging/s/svaren/shg_unet/
