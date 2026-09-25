@@ -2,7 +2,7 @@ Universe   = container
 container_image = docker://lsvaren/transformers2
 Executable = run.sh
 
-transfer_input_files = SHG_generation.py, Opacity.py, Rasterize.py, SplineSample.py, SyntheticGen.py. VectorField.py
+transfer_input_files = SHG_generation.py, Opacity.py, Rasterize.py, SplineSample.py, SyntheticGen.py, VectorField.py
 
 #+WantGPULab = true
 +WantFlock = true

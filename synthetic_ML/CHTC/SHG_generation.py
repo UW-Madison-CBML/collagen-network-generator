@@ -1,16 +1,17 @@
 import random
 import pickle
+import argparse
+from concurrent.futures import ProcessPoolExecutor
 from SyntheticGen import *
 
-save_dir = "/staging/s/svaren/synthetic_ML/"
-n_images = 5000
-seed = 10
+def one_sample(n, seed):
 
-random.seed(seed)
+    save_dir = "/staging/s/svaren/synthetic_ML/"
+    print(f"Saving here: {save_dir}")
 
-for n in range(n_images):
-    print(n)
-    
+    print(f"Seed {seed}")
+    random.seed(seed)
+
     G_align = round(random.uniform(0.005, 1.0), 2)
     G_density = round(random.uniform(0.005, 1.0), 2)
     G_curve = round(random.uniform(0, 1.0), 2)
@@ -21,15 +22,15 @@ for n in range(n_images):
     L_curve = round(random.uniform(0, 1.0), 2)
     L_conn = round(random.uniform(0, 1.0), 2)
 
-    spline_length = int(round(random.uniform(50, 500), 1))
-    spline_num = int(round(random.uniform(100, 1000), 1))
+    spline_length = random.randint(50, 500)
+    spline_num = random.randint(100, 1000)
 
-    wave_amplitude_px = int(round(random.uniform(0, 10)))
-    wave_wavelength_px = int(round(random.uniform(10, 70)))
+    wave_amplitude_px = random.randint(0, 10)
+    wave_wavelength_px = random.randint(10, 70)
 
     L_wave_freq = round(random.uniform(0, 1.0), 2)
 
-    base_noise = int(round(random.uniform(30, 1000), 1))
+    base_noise = random.randint(30, 1000)
 
     meta_data = [
         G_align, G_density, G_curve, G_conn,
@@ -54,7 +55,21 @@ for n in range(n_images):
     )
 
     res['meta'] = meta_data
+    res['id'] = n
     save = f"{wave_amplitude_px}_{wave_wavelength_px}_{spline_length}_{spline_num}_{base_noise}"
 
-    with open(f"{save_dir}/synthetic_{save}.pkl", "wb") as f:
+    with open(f"{n}_{save_dir}/synthetic_{save}.pkl", "wb") as f:
         pickle.dump(res, f)
+
+
+if __name__ == "__main__":
+    p = argparse.ArgumentParser()
+    p.add_argument("--seed", required=True, type=int)
+    args = p.parse_args()
+
+    n_images = 1000
+    tasks = [(n_images, args.seed) for n in range(n_images)]
+
+    with ProcessPoolExecutor() as executor:
+        for finished_n in executor.map(one_sample, tasks):
+            print(f"Finished image {finished_n}")

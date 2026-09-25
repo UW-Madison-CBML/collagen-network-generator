@@ -80,7 +80,7 @@ class ImageDataset(Dataset):
         density = torch.tensor(data['density'])
         vector = torch.tensor(data['vector'])
 
-        meta = data['meta'] # Dict of metadata
+        meta = data['meta'] # List of metadata
         
         return str(pkl_path), img, meta, density, vector
 
