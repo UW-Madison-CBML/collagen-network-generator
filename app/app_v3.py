@@ -504,12 +504,12 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size,
 # """, unsafe_allow_html=True)
 
 # Toggle button — sits in top-right via Streamlit columns trick
-_, toggle_col = st.columns([0.85, 0.15])
-with toggle_col:
-    label = "☀️ Light" if st.session_state.dark_mode else "🌙 Dark"
-    if st.button(label, key="theme_toggle", use_container_width=True):
-        st.session_state.dark_mode = not st.session_state.dark_mode
-        st.rerun()
+# _, toggle_col = st.columns([0.85, 0.15])
+# with toggle_col:
+#     label = "☀️ Light" if st.session_state.dark_mode else "🌙 Dark"
+#     if st.button(label, key="theme_toggle", use_container_width=True):
+#         st.session_state.dark_mode = not st.session_state.dark_mode
+#         st.rerun()
 
 # ── Layout ─────────────────────────────────────────────────────────────────────
 col_left, col_mid, col_right = st.columns([2.1, 2.1, 1.1], gap="medium")
