@@ -416,12 +416,11 @@ let imgData=null;
 
 function render(){
   if(!mainCtx||!densityF32) return;
-  // Density → viridis
-  let mx=0; for(let i=0;i<N*N;i++) if(densityF32[i]>mx) mx=densityF32[i];
+  // Density → viridis, no normalization — brightness reflects absolute painted values
   if(!imgData||imgData.width!==N) imgData=new ImageData(N,N);
   const d=imgData.data;
   for(let i=0;i<N*N;i++){
-    const[r,g,b]=vir(mx>0?densityF32[i]/mx:0);
+    const[r,g,b]=vir(densityF32[i]); // raw value 0..1, no division by max
     d[i*4]=r;d[i*4+1]=g;d[i*4+2]=b;d[i*4+3]=255;
   }
   mainCtx.putImageData(imgData,0,0);
