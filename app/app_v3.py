@@ -44,6 +44,13 @@ from synthetic_code.VectorField import *
 from synthetic_code.SplineSample import *
 from synthetic_code.Rasterize import *
 
+def img_to_base64(path):
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+LOGO_B64 = img_to_base64(os.path.join(current_dir, "assets", "uw-logo-vertical-color-web-digital.png"))
+LOGO_B64_horizontal = img_to_base64(os.path.join(current_dir, "assets", "uw-logo-horizontal-color-web-digital.png"))
+
 
 def generate_custom_fields_from_canvas(
     density_configs: list, 
@@ -113,25 +120,117 @@ def generate_custom_fields_from_canvas(
 
 
 # ── Page config ────────────────────────────────────────────────────────────────
-st.set_page_config(page_title="SHG Simulator", layout="wide", initial_sidebar_state="collapsed")
-st.markdown("""<style>
-html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{background:#0d1117!important;color:#e2e8f0!important}
-[data-testid="stAppViewBlockContainer"]{padding-top:0.8rem!important}
-#MainMenu,footer,header,[data-testid="stDeployButton"],[data-testid="stToolbar"],[data-testid="collapsedControl"]{display:none!important}
-*{font-family:Inter,system-ui,sans-serif!important}
-[data-testid="stSlider"] label{color:#94a3b8!important;font-size:12px!important}
-[data-testid="stButton"]>button{background:#1e2535!important;border:1.5px solid #2d3650!important;color:#94a3b8!important;border-radius:7px!important;transition:all .15s!important}
-[data-testid="stButton"]>button:hover{border-color:#4ade8066!important;color:#4ade80!important}
-button[kind="primary"]{background:#4ade8022!important;border-color:#4ade80!important;color:#4ade80!important;font-weight:700!important}
-button[kind="primary"]:hover{background:#4ade8033!important}
-[data-testid="stExpander"]{background:#161b27!important;border:1px solid #2d3650!important;border-radius:8px!important}
-[data-testid="stExpander"] summary{color:#94a3b8!important}
-hr{border-color:#2d3650!important;margin:0.6rem 0!important}
-[data-testid="stDownloadButton"]>button{background:#60a5fa18!important;border:1.5px solid #60a5fa!important;color:#60a5fa!important;border-radius:7px!important;width:100%!important}
-[data-testid="stNumberInput"] input{background:#1e2535!important;border:1px solid #2d3650!important;color:#e2e8f0!important;border-radius:6px!important}
-[data-testid="stCheckbox"] label{color:#94a3b8!important;font-size:12px!important}
-iframe[title="shg_canvas"]{min-height:660px!important}
-</style>""", unsafe_allow_html=True)
+st.set_page_config(page_title="SHG Simulator", layout="wide", initial_sidebar_state="collapsed",page_icon="assets/uw-logo-vertical-color-web-digital.png")
+# st.markdown("""<style>
+# html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{background:#0d1117!important;color:#e2e8f0!important}
+# [data-testid="stAppViewBlockContainer"]{padding-top:0.8rem!important}
+# #MainMenu,footer,header,[data-testid="stDeployButton"],[data-testid="stToolbar"],[data-testid="collapsedControl"]{display:none!important}
+# *{font-family:Inter,system-ui,sans-serif!important}
+# [data-testid="stSlider"] label{color:#94a3b8!important;font-size:12px!important}
+# [data-testid="stButton"]>button{background:#1e2535!important;border:1.5px solid #2d3650!important;color:#94a3b8!important;border-radius:7px!important;transition:all .15s!important}
+# [data-testid="stButton"]>button:hover{border-color:#4ade8066!important;color:#4ade80!important}
+# button[kind="primary"]{background:#4ade8022!important;border-color:#4ade80!important;color:#4ade80!important;font-weight:700!important}
+# button[kind="primary"]:hover{background:#4ade8033!important}
+# [data-testid="stExpander"]{background:#161b27!important;border:1px solid #2d3650!important;border-radius:8px!important}
+# [data-testid="stExpander"] summary{color:#94a3b8!important}
+# hr{border-color:#2d3650!important;margin:0.6rem 0!important}
+# [data-testid="stDownloadButton"]>button{background:#60a5fa18!important;border:1.5px solid #60a5fa!important;color:#60a5fa!important;border-radius:7px!important;width:100%!important}
+# [data-testid="stNumberInput"] input{background:#1e2535!important;border:1px solid #2d3650!important;color:#e2e8f0!important;border-radius:6px!important}
+# [data-testid="stCheckbox"] label{color:#94a3b8!important;font-size:12px!important}
+# iframe[title="shg_canvas"]{min-height:660px!important}
+# </style>""", unsafe_allow_html=True)
+
+st.markdown(f"""
+<style>
+  .brand-bar {{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0 10px;
+    border-bottom: 1px solid #2d3650;
+    margin-bottom: 10px;
+  }}
+  .brand-left {{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }}
+  .brand-divider {{
+    width: 1px;
+    height: 36px;
+    background: #cc154366;
+    flex-shrink: 0;
+  }}
+  .brand-lab {{
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }}
+  .brand-lab-name {{
+    font-size: 13px;
+    font-weight: 700;
+    color: #cc1543;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }}
+  .brand-lab-sub {{
+    font-size: 10px;
+    color: #94a3b8;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }}
+  .brand-app {{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }}
+  .brand-app-title {{
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #f8fafc;
+  }}
+  .brand-app-sub {{
+    font-size: 11px;
+    color: #64748b;
+  }}
+  .brand-right img {{
+    height: 40px;
+    opacity: 0.9;
+  }}
+  /* Tint the active-preset indicator and primary button to match UW red */
+  button[kind="primary"] {{
+    background: #cc154322 !important;
+    border-color: #cc1543 !important;
+    color: #cc1543 !important;
+  }}
+  button[kind="primary"]:hover {{
+    background: #cc154333 !important;
+  }}
+  /* Tint the render-button glow */
+  .stButton > button:hover {{
+    border-color: #cc154366 !important;
+    color: #cc1543 !important;
+  }}
+</style>
+
+<div class="brand-bar">
+  <div class="brand-left">
+    <img src="data:image/png;base64,{LOGO_B64_horizontal}" style="height:55px;opacity:0.95" alt="UW–Madison">
+    <div class="brand-divider"></div>
+    <div class="brand-lab">
+      <div class="brand-lab-name">CBML</div>
+      <div class="brand-lab-sub">Computational Biology &amp; Machine Learning</div>
+      <div class="brand-lab-sub" style="color:#475569">Bhaskar Lab · UW–Madison</div>
+    </div>
+    <div class="brand-divider"></div>
+    <div class="brand-app">
+      <div class="brand-app-title">SHG Fiber Simulator</div>
+      <div class="brand-app-sub">Interactive Field Editor</div>
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
 # Add this once, e.g. right after your existing st.markdown("""<style>...""") call
 st.markdown("""
@@ -334,12 +433,12 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size,
     return ax
 
 # ── Header ─────────────────────────────────────────────────────────────────────
-st.markdown("""
-<div style="display:flex;align-items:center;gap:10px;padding:4px 0 10px">
-  <div style="width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 12px #4ade80;flex-shrink:0"></div>
-  <span style="font-size:15px;font-weight:700;letter-spacing:-0.02em">SHG Fiber Simulator</span>
-  <span style="color:#475569;font-size:12px">Interactive Field Editor</span>
-</div><hr>""", unsafe_allow_html=True)
+# st.markdown("""
+# <div style="display:flex;align-items:center;gap:10px;padding:4px 0 10px">
+#   <div style="width:9px;height:9px;border-radius:50%;background:#cc1543;box-shadow:0 0 12px #cc154388;flex-shrink:0"></div>
+#   <span style="font-size:15px;font-weight:700;letter-spacing:-0.02em">SHG Fiber Simulator</span>
+#   <span style="color:#475569;font-size:12px">Interactive Field Editor</span>
+# </div><hr>""", unsafe_allow_html=True)
 
 # ── Layout ─────────────────────────────────────────────────────────────────────
 col_left, col_mid, col_right = st.columns([2.1, 2.1, 1.1], gap="medium")
@@ -814,7 +913,6 @@ with col_mid:
             }
             st.download_button("↓ Vector JSON", data=json.dumps(vf_export),
                 file_name="vector_field.json", mime="application/json", use_container_width=True)
-
     else:
         st.markdown("""
         <div style="background:#161b27;border:1px solid #2d3650;border-radius:8px;
@@ -825,3 +923,13 @@ with col_mid:
             then click <b style="color:#4ade80">Render</b>.
           </div>
         </div>""", unsafe_allow_html=True)
+        
+st.markdown("""
+<div style="margin-top:32px;padding-top:12px;border-top:1px solid #2d3650;
+     display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+  <span style="color:#334155;font-size:10px">
+    © Bhaskar Lab · Computational Biology &amp; Machine Learning · University of Wisconsin–Madison
+  </span>
+  <span style="color:#cc1543;font-size:10px;font-weight:600">CBML</span>
+</div>
+""", unsafe_allow_html=True)
