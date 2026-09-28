@@ -133,6 +133,77 @@ hr{border-color:#2d3650!important;margin:0.6rem 0!important}
 iframe[title="shg_canvas"]{min-height:660px!important}
 </style>""", unsafe_allow_html=True)
 
+# Add this once, e.g. right after your existing st.markdown("""<style>...""") call
+st.markdown("""
+<style>
+.tip-wrap {
+    position: relative;      /* establishes positioning context for the tooltip */
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: #fafafa;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    margin-bottom: 4px;
+}
+
+.tip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid #475569;
+    color: #94a3b8;
+    font-size: 9px;
+    font-weight: 700;
+    cursor: default;
+    flex-shrink: 0;
+}
+
+.tip:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    right: 0;
+    top: 20px;
+    background: #1e2535;
+    border: 1px solid #2d3650;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #e2e8f0;
+    width: max-content;          /* grow to fit the text naturally */
+    max-width: min(320px, 90vw); /* but never wider than 320px or 90% of viewport */
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.5;
+    pointer-events: none;
+    z-index: 9999;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+}
+/* Flip left when near right edge */
+ .tip.flip:hover::after { left: auto; right: 18px; }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("<style>[data-testid='stSlider'] label { display:none !important; }</style>", unsafe_allow_html=True)
+
+# Helper — replaces your _sec() calls where you want a tooltip
+def _sec_tip(label, tip, flip=False):
+    flip_cls = " flip" if flip else ""
+    st.markdown(
+        f"<div class='tip-wrap'>{label}"
+        f"<span class='tip{flip_cls}' data-tip='{tip}'>?</span>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
 # ── Component ──────────────────────────────────────────────────────────────────
 _COMP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "canvas_component")
 _canvas_fn = components.declare_component("shg_canvas", path=_COMP_DIR)
@@ -503,32 +574,55 @@ with col_right:
             f" — {active_preset['desc']}</div>",
             unsafe_allow_html=True,
         )
+    
+    def _tip(label, tip):
+        st.markdown(
+            f"<div class='tip-wrap'>{label}"
+            f"<span class='tip' data-tip='{tip}'>?</span>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
 
     st.markdown("---")
     _sec("Fiber")
+    # _sec_tip("Fiber", "Controls the number, length and thickness of individual fibers")
+    _tip("Count", "Total number of fibers")
     st.session_state.num_fibers    = st.slider("Count",     20,  3000, st.session_state.num_fibers,    step=10)
+    _tip("Length", "Length of each fiber")
     st.session_state.spline_length = st.slider("Length",    20,  400, st.session_state.spline_length, step=5)
+    _tip("Thickness", "Thickness of each fiber")
     st.session_state.thickness     = st.slider("Thickness", 0.5, 10.0,st.session_state.thickness,    step=0.5)
     # st.session_state.wave_amplitude_px     = st.slider("Wave amplitude", 0.5, 5.0,st.session_state.wave_amplitude_px,    step=0.5)
     # st.session_state.wave_wavelength_px     = st.slider("Wave wavelength", 0.5, .0,st.session_state.wave_wavelength_px,    step=0.5)
 
     st.markdown("---")
     _sec("Alignment")
+    # _sec_tip("Alignment", "G_align: how parallel fibers are globally. L_align: how much local neighborhood smoothing is applied. Curve parameters control bending. Local Curve determines small scale waviness.")
+    _tip("Global align", "how parallel fibers are globally")
     st.session_state.G_align = st.slider("Global align", 0.0, 1.0, st.session_state.G_align, step=0.01)
+    _tip("Local align", "Alignment with underyling vector field")
     st.session_state.L_align = st.slider("Local align",  0.0, 1.0, st.session_state.L_align, step=0.01)
+    _tip("Global curve", "Large scale curvature")
     st.session_state.G_curve = st.slider("Global curve", 0.0, 1.0, st.session_state.G_curve, step=0.01)
+    _tip("Local curve", "small scale waviness")
     st.session_state.L_curve = st.slider("Local curve",  0.0, 1.0, st.session_state.L_curve, step=0.01)
     st.markdown("---")
     _sec("Texture")
-    st.session_state.L_conn      = st.slider("Connectivity", 0.0, 1.0, st.session_state.L_conn,      step=0.01)
+    # _sec_tip("Texture", "Wavelength: spatial frequency of local fiber waves")
+    # st.session_state.L_conn      = st.slider("Connectivity", 0.0, 1.0, st.session_state.L_conn,      step=0.01)
+    _tip("Wavelength", "spatial frequency of local fiber waves")
     st.session_state.L_wave_freq = st.slider("Wavelength",  0.0, 1.0, st.session_state.L_wave_freq, step=0.01)
     st.markdown("---")
-    _sec("Seed")
+    _tip("Seed", "Seed value used for psuedo random number generation")
     st.session_state.seed = st.number_input("Random seed", value=int(st.session_state.seed), step=1)
-    _sec("3D layers")
-    st.session_state.n_layers = st.slider("layers", 1,20, value=int(st.session_state.n_layers), step=1)
-    st.session_state.depth = st.slider("z depth", 0.5,50.0, value=(st.session_state.depth), step=0.1)
-    st.session_state.focal_plane = st.slider("focal plane %", 0.0,1.0,value=(st.session_state.focal_plane), step=0.1)
+    _sec("3D Layers")
+    # _sec_tip("3D layers", "Z depth is the overall depth of the sample. Layers: the number of distinct planes of fibers (default 1). Focal plane %: the position of the focal plane as a percentage of the total depth")
+    _tip("Layers","The number of distinct planes of fibers that are equally spaced in depth (default 1)")
+    st.session_state.n_layers = st.slider("Layers", 1,20, value=int(st.session_state.n_layers), step=1)
+    _tip("Z depth","Overall depth of the sample")
+    st.session_state.depth = st.slider("Z depth", 0.5,50.0, value=(st.session_state.depth), step=0.1)
+    _tip("Focal plane %","The position of the focal plane as a percentage of the total depth")
+    st.session_state.focal_plane = st.slider("Focal plane %", 0.0,1.0,value=(st.session_state.focal_plane), step=0.1)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MIDDLE — Render & Output
