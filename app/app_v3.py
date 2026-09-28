@@ -453,18 +453,18 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size,
         rows = np.arange(step//2, shape[0], step)
         cols = np.arange(step//2, shape[1], step)
         R, C = np.meshgrid(rows, cols, indexing="ij")
-        # Recover fiber angle from double-angle representation
-        # Q = (cos2θ, sin2θ)  →  θ = 0.5 * arctan2(Qy, Qx)
-        theta = 0.5 * np.arctan2(Qy[R, C], Qx[R, C]) # axial_to_theta()
-
-        # In image coords: x=col (rightward), y=row (downward)
-        # Fiber tangent: (cos θ, sin θ) in standard math coords
-        # In image display with ylim inverted: u=cosθ (right), v=sinθ (down matches image y-down)
+        theta = 0.5 * np.arctan2(Qy[R, C], Qx[R, C])
         u =  np.cos(theta)
-        v =  -np.sin(theta)
+        v = -np.sin(theta)
         ax.quiver(C, R, u, v,
-                  color="white", headlength=0, headaxislength=0, #no arrow head
-                  pivot="middle", scale=26, alpha=0.55, width=0.003) 
+                  color="#f59e0b",      # amber — distinct from white splines
+                  headlength=4,         # restore arrowhead
+                  headaxislength=3.5,
+                  headwidth=3,
+                  pivot="middle",
+                  scale=28,
+                  alpha=0.75,
+                  width=0.004)
 
     if show_splines and splines:
         for sp in splines:
