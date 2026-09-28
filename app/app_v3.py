@@ -51,7 +51,6 @@ def img_to_base64(path):
 LOGO_B64 = img_to_base64(os.path.join(current_dir, "assets", "uw-logo-vertical-color-web-digital.png"))
 LOGO_B64_horizontal = img_to_base64(os.path.join(current_dir, "assets", "uw-logo-horizontal-color-web-digital.png"))
 
-
 def generate_custom_fields_from_canvas(
     density_configs: list, 
     well_configs: list,
@@ -117,6 +116,57 @@ def generate_custom_fields_from_canvas(
     return D, wells, hard_zero_mask
 
 
+# ── Session state ──────────────────────────────────────────────────────────────
+def _ss(k, v):
+    if k not in st.session_state: st.session_state[k] = v
+
+_ss("wells",        [])
+_ss("active_tab",   "density")
+_ss("shg_image",    None)
+_ss("shg_splines",  None)
+_ss("shg_D",        None)
+_ss("shg_Qx",       None)
+_ss("shg_Qy",       None)
+_ss("active_params",{})
+_ss("num_fibers",   300)
+_ss("spline_length",150)
+_ss("thickness",    2.5)
+_ss("G_align",      0.50)
+_ss("L_align",      0.50)
+_ss("G_curve",      0.30)
+_ss("L_curve",      0.50)
+_ss("L_conn",       0.50)
+_ss("L_wave_freq",  0.25)
+_ss("seed",         42)
+_ss("show_density", True)
+_ss("show_vectors", True)
+_ss("show_splines", True)
+_ss("show_quiver",  True)
+_ss("wave_amplitude_px", 2.8)
+_ss("wave_wavelength_px", None)
+
+_ss("n_layers",  1)
+_ss("depth", 1.0)
+_ss("focal_plane", 0.0)
+
+_ss("dark_mode", True)
+
+if st.session_state.dark_mode:
+    BG       = "#0d1117"
+    SURFACE  = "#161b27"
+    PANEL    = "#1e2535"
+    BORDER   = "#2d3650"
+    TEXT     = "#e2e8f0"
+    MUTED    = "#64748b"
+else:
+    BG       = "#ffffff"
+    SURFACE  = "#f8fafc"
+    PANEL    = "#f1f5f9"
+    BORDER   = "#cbd5e1"
+    TEXT     = "#0f172a"
+    MUTED    = "#64748b"
+
+ACCENT = "#cc1543"
 
 
 # ── Page config ────────────────────────────────────────────────────────────────
@@ -232,6 +282,28 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# st.markdown(f"""<style>
+# html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{{background:{BG}!important;color:{TEXT}!important}}
+# [data-testid="stAppViewBlockContainer"]{{padding-top:0.8rem!important}}
+# #MainMenu,footer,header,[data-testid="stDeployButton"],[data-testid="stToolbar"],[data-testid="collapsedControl"]{{display:none!important}}
+# *{{font-family:Inter,system-ui,sans-serif!important}}
+# [data-testid="stSlider"] label{{color:{MUTED}!important;font-size:12px!important}}
+# [data-testid="stButton"]>button{{background:{PANEL}!important;border:1.5px solid {BORDER}!important;color:{MUTED}!important;border-radius:7px!important;transition:all .15s!important}}
+# [data-testid="stButton"]>button:hover{{border-color:{ACCENT}66!important;color:{ACCENT}!important}}
+# button[kind="primary"]{{background:{ACCENT}22!important;border-color:{ACCENT}!important;color:{ACCENT}!important;font-weight:700!important}}
+# button[kind="primary"]:hover{{background:{ACCENT}33!important}}
+# [data-testid="stExpander"]{{background:{SURFACE}!important;border:1px solid {BORDER}!important;border-radius:8px!important}}
+# [data-testid="stExpander"] summary{{color:{MUTED}!important}}
+# hr{{border-color:{BORDER}!important;margin:0.6rem 0!important}}
+# [data-testid="stDownloadButton"]>button{{background:#60a5fa18!important;border:1.5px solid #60a5fa!important;color:#60a5fa!important;border-radius:7px!important;width:100%!important}}
+# [data-testid="stNumberInput"] input{{background:{PANEL}!important;border:1px solid {BORDER}!important;color:{TEXT}!important;border-radius:6px!important}}
+# [data-testid="stCheckbox"] label{{color:{MUTED}!important;font-size:12px!important}}
+# iframe[title="shg_canvas"]{{min-height:660px!important}}
+# .tip-wrap{{position:relative;display:inline-flex;align-items:center;gap:5px;font-size:14px;color:{TEXT};font-weight:400;letter-spacing:0;text-transform:none;margin-bottom:4px}}
+# .tip{{position:relative;display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid {BORDER};color:{MUTED};font-size:9px;font-weight:700;cursor:default;flex-shrink:0}}
+# .tip:hover::after{{content:attr(data-tip);position:absolute;right:0;top:20px;background:{PANEL};border:1px solid {BORDER};border-radius:6px;padding:6px 10px;font-size:11px;color:{TEXT};width:max-content;max-width:min(320px,90vw);white-space:normal;word-wrap:break-word;line-height:1.5;pointer-events:none;z-index:9999;font-weight:400;text-transform:none;letter-spacing:0}}
+# </style>""", unsafe_allow_html=True)
+
 # Add this once, e.g. right after your existing st.markdown("""<style>...""") call
 st.markdown("""
 <style>
@@ -309,6 +381,12 @@ _canvas_fn = components.declare_component("shg_canvas", path=_COMP_DIR)
 
 CANVAS_SIZE = 512
 
+_z = lambda: np.zeros(CANVAS_SIZE * CANVAS_SIZE, dtype=np.float32)
+_ss("density_arr",  _z())
+_ss("vec_qx_arr",   _z())
+_ss("vec_qy_arr",   _z())
+_ss("vec_mag_arr",  _z())
+
 def shg_canvas(mode, canvas_size, wells, density_b64="",
                vec_qx_b64="", vec_qy_b64="", vec_mag_b64="", key=None):
     return _canvas_fn(
@@ -319,43 +397,6 @@ def shg_canvas(mode, canvas_size, wells, density_b64="",
         key=key, default=None,
     )
 
-# ── Session state ──────────────────────────────────────────────────────────────
-def _ss(k, v):
-    if k not in st.session_state: st.session_state[k] = v
-
-_z = lambda: np.zeros(CANVAS_SIZE * CANVAS_SIZE, dtype=np.float32)
-_ss("density_arr",  _z())
-_ss("vec_qx_arr",   _z())
-_ss("vec_qy_arr",   _z())
-_ss("vec_mag_arr",  _z())
-_ss("wells",        [])
-_ss("active_tab",   "density")
-_ss("shg_image",    None)
-_ss("shg_splines",  None)
-_ss("shg_D",        None)
-_ss("shg_Qx",       None)
-_ss("shg_Qy",       None)
-_ss("active_params",{})
-_ss("num_fibers",   300)
-_ss("spline_length",150)
-_ss("thickness",    2.5)
-_ss("G_align",      0.50)
-_ss("L_align",      0.50)
-_ss("G_curve",      0.30)
-_ss("L_curve",      0.50)
-_ss("L_conn",       0.50)
-_ss("L_wave_freq",  0.25)
-_ss("seed",         42)
-_ss("show_density", True)
-_ss("show_vectors", True)
-_ss("show_splines", True)
-_ss("show_quiver",  True)
-_ss("wave_amplitude_px", 2.8)
-_ss("wave_wavelength_px", None)
-
-_ss("n_layers",  1)
-_ss("depth", 1.0)
-_ss("focal_plane", 0.0)
 
 # ── Encode / decode helpers ────────────────────────────────────────────────────
 def to_b64(arr):
@@ -439,6 +480,36 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size,
 #   <span style="font-size:15px;font-weight:700;letter-spacing:-0.02em">SHG Fiber Simulator</span>
 #   <span style="color:#475569;font-size:12px">Interactive Field Editor</span>
 # </div><hr>""", unsafe_allow_html=True)
+
+# st.markdown(f"""
+# <div class="brand-bar">
+#   <div class="brand-left">
+#     <img src="data:image/png;base64,{LOGO_B64}" style="height:44px;opacity:0.95" alt="UW–Madison">
+#     <div class="brand-divider"></div>
+#     <div class="brand-lab">
+#       <div class="brand-lab-name">CBML</div>
+#       <div class="brand-lab-sub">Computational Biology &amp; Machine Learning</div>
+#       <div class="brand-lab-sub" style="color:#475569">Bhaskar Lab · UW–Madison</div>
+#     </div>
+#     <div class="brand-divider"></div>
+#     <div class="brand-app">
+#       <div class="brand-app-title">SHG Fiber Simulator</div>
+#       <div class="brand-app-sub">Interactive Field Editor</div>
+#     </div>
+#   </div>
+#   <div class="brand-right" style="display:flex;align-items:center;gap:10px">
+#     <span style="font-size:11px;color:{MUTED}">{'🌙 Dark' if st.session_state.dark_mode else '☀️ Light'}</span>
+#   </div>
+# </div>
+# """, unsafe_allow_html=True)
+
+# Toggle button — sits in top-right via Streamlit columns trick
+_, toggle_col = st.columns([0.85, 0.15])
+with toggle_col:
+    label = "☀️ Light" if st.session_state.dark_mode else "🌙 Dark"
+    if st.button(label, key="theme_toggle", use_container_width=True):
+        st.session_state.dark_mode = not st.session_state.dark_mode
+        st.rerun()
 
 # ── Layout ─────────────────────────────────────────────────────────────────────
 col_left, col_mid, col_right = st.columns([2.1, 2.1, 1.1], gap="medium")
