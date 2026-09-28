@@ -15,7 +15,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 from PIL import Image
 
-from shg_backend import (
+from app.shg_backend import (
     _well_weight_and_tangent,
     create_grid,
     fit_spline,
