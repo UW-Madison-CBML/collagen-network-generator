@@ -261,7 +261,7 @@ st.markdown(f"""
     </div>
     <div class="brand-divider"></div>
     <div class="brand-app">
-      <div class="brand-app-title">SHG Fiber Simulator</div>
+      <div class="brand-app-title" style="color:#475569">SHG Fiber Simulator</div>
       <div class="brand-app-sub">Interactive Field Editor</div>
     </div>
   </div>
@@ -299,7 +299,7 @@ st.markdown("""
     align-items: center;
     gap: 5px;
     font-size: 14px;
-    color: #010408;
+    color: #475569;
     font-weight: 400;
     letter-spacing: 0;
     text-transform: none;
