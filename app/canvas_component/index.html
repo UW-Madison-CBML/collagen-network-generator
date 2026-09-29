@@ -12,7 +12,7 @@ body { background:#0d1117; font-family:Inter,system-ui,sans-serif; overflow-x:hi
 .btn { padding:4px 11px; border-radius:6px; border:1.5px solid #2d3650; background:transparent; color:#64748b;
        cursor:pointer; font-size:11px; font-weight:600; font-family:inherit; white-space:nowrap; flex-shrink:0; }
 .btn:hover { border-color:#4a5568; color:#94a3b8; }
-.btn.on-paint { border-color:#4ade80; background:#4ade8020; color:#4ade80; }
+.btn.on-paint { border-color:#cc1543; background:#cc154320; color:#cc1543; }
 .btn.on-erase { border-color:#f87171; background:#f8717120; color:#f87171; }
 .btn.on-vec   { border-color:#a78bfa; background:#a78bfa20; color:#a78bfa; }
 .btn.on-place { border-color:#60a5fa; background:#60a5fa20; color:#60a5fa; }
@@ -24,7 +24,7 @@ body { background:#0d1117; font-family:Inter,system-ui,sans-serif; overflow-x:hi
 .sl-lbl { color:#64748b; font-size:11px; white-space:nowrap; }
 .sl-val { color:#e2e8f0; font-size:11px; min-width:24px; text-align:right; font-variant-numeric:tabular-nums; }
 input[type=range] { -webkit-appearance:none; width:64px; height:4px; border-radius:2px; background:#2d3650; cursor:pointer; outline:none; flex-shrink:0; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:#4ade80; cursor:pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:#cc1543; cursor:pointer; }
 input[type=range].purple::-webkit-slider-thumb { background:#a78bfa; }
 
 .cv-outer { width:100%; position:relative; }
@@ -36,7 +36,7 @@ input[type=range].purple::-webkit-slider-thumb { background:#a78bfa; }
 #cvVec  { pointer-events:none; display:none; }
 /* Prevent scroll/zoom on the whole canvas area during touch painting */
 .cv-outer { touch-action:none; }
-#cursor-ring { position:absolute; pointer-events:none; border-radius:50%; border:2px solid #4ade8080; background:#4ade8010; display:none; transform:translate(-50%,-50%); }
+#cursor-ring { position:absolute; pointer-events:none; border-radius:50%; border:2px solid #cc154380; background:#cc154310; display:none; transform:translate(-50%,-50%); }
 
 .well-panel { width:100%; background:#1e2535; border:1px solid #f59e0b55; border-radius:8px; padding:10px 12px; display:none; flex-direction:column; gap:8px; }
 .well-panel.show { display:flex; }
@@ -416,12 +416,11 @@ let imgData=null;
 
 function render(){
   if(!mainCtx||!densityF32) return;
-  // Density → viridis
-  let mx=0; for(let i=0;i<N*N;i++) if(densityF32[i]>mx) mx=densityF32[i];
+  // Density → viridis, no normalization — brightness reflects absolute painted values
   if(!imgData||imgData.width!==N) imgData=new ImageData(N,N);
   const d=imgData.data;
   for(let i=0;i<N*N;i++){
-    const[r,g,b]=vir(mx>0?densityF32[i]/mx:0);
+    const[r,g,b]=vir(densityF32[i]); // raw value 0..1, no division by max
     d[i*4]=r;d[i*4+1]=g;d[i*4+2]=b;d[i*4+3]=255;
   }
   mainCtx.putImageData(imgData,0,0);
@@ -699,8 +698,8 @@ function onPointerMove(e){
         cursorRing.style.display="block";
         cursorRing.style.left=x*sc+"px"; cursorRing.style.top=y*sc+"px";
         cursorRing.style.width=brushSz*2*sc+"px"; cursorRing.style.height=brushSz*2*sc+"px";
-        cursorRing.style.borderColor=tool==="erase"?"#f8717188":"#4ade8088";
-        cursorRing.style.background =tool==="erase"?"#f8717110":"#4ade8010";
+        cursorRing.style.borderColor=tool==="erase"?"#f8717188":"#cc154388";
+        cursorRing.style.background =tool==="erase"?"#f8717110":"#cc154310";
         if(painting){strokeDensityTo(x,y);render();}
       }
     } else {
