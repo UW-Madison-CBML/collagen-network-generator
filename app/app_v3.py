@@ -16,14 +16,6 @@ from typing import List, Tuple, Optional, Dict, Any
 
 from typing import Optional
 
-# from shg_backend import (
-#     _well_weight_and_tangent, create_grid, fit_spline,
-#     generate_custom_fields_from_canvas, generate_fiber,
-#     make_fiber_aux_fields, make_global_orientation, make_wave_freq_field,
-#     rasterize_splines, relax, sample_field_at_seeds,
-#     sample_seeds_from_density, sinusoidal_fiber_offset,
-# )
-
 import sys
 from pathlib import Path
 
@@ -33,12 +25,6 @@ project_root = current_dir.parent
 
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
-
-# 4. Now use an absolute import (remove the dots "..")
-# from VectorField import _well_weight_and_tangent, create_grid, make_fiber_aux_fields, make_global_orientation, make_wave_freq_field, relax, sample_field_at_seeds
-# from SplineSample import fit_spline, sample_seeds_from_density, generate_fiber, sinusoidal_fiber_offset
-# from shg_backend import ( generate_custom_fields_from_canvas)
-# from Rasterize import rasterize_splines
 
 from synthetic_code.VectorField import *
 from synthetic_code.SplineSample import *
@@ -468,7 +454,7 @@ def apply_preset(key):
 # ══════════════════════════════════════════════════════════════════════════════
 with col_right:
     def _sec(label):
-        st.markdown(f"<div style='color:#475569;font-size:10px;font-weight:700;letter-spacing:.07em;"
+        st.markdown(f"<div style='color:#010408;font-size:10px;font-weight:700;letter-spacing:.07em;"
                     f"text-transform:uppercase;margin:10px 0 6px'>{label}</div>", unsafe_allow_html=True)
 
     # ── Preset selector ────────────────────────────────────────────────────────
