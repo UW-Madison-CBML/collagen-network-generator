@@ -299,7 +299,7 @@ st.markdown("""
     align-items: center;
     gap: 5px;
     font-size: 14px;
-    color: #fafafa;
+    color: #010408;
     font-weight: 400;
     letter-spacing: 0;
     text-transform: none;
