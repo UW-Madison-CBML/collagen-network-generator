@@ -1,0 +1,8 @@
+team: svaren-uni
+project: UNET
+dir: /tmp/wandb
+img_path: /staging/s/svaren/synthetic_ML/images/
+batchsize: 128
+img_size: 512
+lr: 0.0001
+epochs: 500
