@@ -135,23 +135,6 @@ _ss("n_layers",  1)
 _ss("depth", 1.0)
 _ss("focal_plane", 0.0)
 
-_ss("dark_mode", True)
-
-if st.session_state.dark_mode:
-    BG       = "#0d1117"
-    SURFACE  = "#161b27"
-    PANEL    = "#1e2535"
-    BORDER   = "#2d3650"
-    TEXT     = "#e2e8f0"
-    MUTED    = "#64748b"
-else:
-    BG       = "#ffffff"
-    SURFACE  = "#f8fafc"
-    PANEL    = "#f1f5f9"
-    BORDER   = "#cbd5e1"
-    TEXT     = "#0f172a"
-    MUTED    = "#64748b"
-
 ACCENT = "#cc1543"
 
 
@@ -178,12 +161,18 @@ st.set_page_config(page_title="SHG Simulator", layout="wide", initial_sidebar_st
 
 st.markdown(f"""
 <style>
+    :root {{
+        --shg-surface: var(--secondary-background-color, #f8fafc);
+        --shg-text: var(--text-color, #0f172a);
+        --shg-muted: color-mix(in srgb, var(--text-color, #0f172a) 65%, var(--background-color, #ffffff));
+        --shg-border: color-mix(in srgb, var(--text-color, #0f172a) 18%, var(--background-color, #ffffff));
+    }}
   .brand-bar {{
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 8px 0 10px;
-    border-bottom: 1px solid #2d3650;
+    border-bottom: 1px solid var(--shg-border);
     margin-bottom: 10px;
   }}
   .brand-left {{
@@ -211,7 +200,7 @@ st.markdown(f"""
   }}
   .brand-lab-sub {{
     font-size: 10px;
-    color: #94a3b8;
+    color: var(--shg-muted);
     font-weight: 400;
     letter-spacing: 0.02em;
   }}
@@ -224,11 +213,11 @@ st.markdown(f"""
     font-size: 15px;
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: #f8fafc;
+    color: var(--shg-text);
   }}
   .brand-app-sub {{
     font-size: 11px;
-    color: #64748b;
+    color: var(--shg-muted);
   }}
   .brand-right img {{
     height: 40px;
@@ -257,11 +246,11 @@ st.markdown(f"""
     <div class="brand-lab">
       <div class="brand-lab-name">CBML</div>
       <div class="brand-lab-sub">Computational Biology &amp; Machine Learning</div>
-      <div class="brand-lab-sub" style="color:#475569">Bhaskar Lab · UW–Madison</div>
+    <div class="brand-lab-sub">Bhaskar Lab · UW–Madison</div>
     </div>
     <div class="brand-divider"></div>
     <div class="brand-app">
-      <div class="brand-app-title" style="color:#475569">SHG Fiber Simulator</div>
+    <div class="brand-app-title">SHG Fiber Simulator</div>
       <div class="brand-app-sub">Interactive Field Editor</div>
     </div>
   </div>
@@ -299,7 +288,7 @@ st.markdown("""
     align-items: center;
     gap: 5px;
     font-size: 14px;
-    color: #475569;
+    color: var(--shg-text);
     font-weight: 400;
     letter-spacing: 0;
     text-transform: none;
@@ -314,8 +303,8 @@ st.markdown("""
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    border: 1px solid #475569;
-    color: #94a3b8;
+    border: 1px solid var(--shg-border);
+    color: var(--shg-muted);
     font-size: 9px;
     font-weight: 700;
     cursor: default;
@@ -327,12 +316,12 @@ st.markdown("""
     position: absolute;
     right: 0;
     top: 20px;
-    background: #1e2535;
-    border: 1px solid #2d3650;
+    background: var(--shg-surface);
+    border: 1px solid var(--shg-border);
     border-radius: 6px;
     padding: 6px 10px;
     font-size: 11px;
-    color: #e2e8f0;
+    color: var(--shg-text);
     width: max-content;          /* grow to fit the text naturally */
     max-width: min(320px, 90vw); /* but never wider than 320px or 90% of viewport */
     white-space: normal;
@@ -554,11 +543,11 @@ with col_left:
     <div style="display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:6px">
         <div style="width:72px;height:6px;border-radius:3px;background:linear-gradient(to right,#440154,#3b528b,#21908d,#5dc963,#fde725)"></div>
-        <span style="color:#475569;font-size:10px">density</span>
+        <span style="color:var(--shg-muted);font-size:10px">density</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         <div style="width:18px;height:6px;border-radius:3px;background:#a78bfa"></div>
-        <span style="color:#475569;font-size:10px">painted orientation</span>
+        <span style="color:var(--shg-muted);font-size:10px">painted orientation</span>
       </div>
     </div>""", unsafe_allow_html=True)
 
@@ -567,10 +556,10 @@ with col_left:
     has_v   = float(st.session_state.vec_mag_arr.max()) > 1e-3
     n_wells = len(st.session_state.wells)
     st.markdown(f"""
-    <div style="background:#1e2535;border:1px solid #2d3650;border-radius:8px;padding:9px 12px;font-size:11px;margin-top:8px">
+    <div style="background:var(--shg-surface);border:1px solid var(--shg-border);border-radius:8px;padding:9px 12px;font-size:11px;margin-top:8px">
       <div style="display:flex;gap:16px;flex-wrap:wrap">
-        <span style="color:#64748b">Density: <span style="color:{'#4ade80' if has_d else '#f87171'}">{'painted' if has_d else 'empty'}</span></span>
-        <span style="color:#64748b">Vectors: <span style="color:{'#a78bfa' if has_v else '#475569'}">{'painted' if has_v else 'empty'}</span></span>
+        <span style="color:var(--shg-muted)">Density: <span style="color:{'#4ade80' if has_d else '#f87171'}">{'painted' if has_d else 'empty'}</span></span>
+        <span style="color:var(--shg-muted)">Vectors: <span style="color:{'#a78bfa' if has_v else '#64748b'}">{'painted' if has_v else 'empty'}</span></span>
         <span style="color:#64748b">Wells: <span style="color:#60a5fa">{n_wells}</span></span>
       </div>
     </div>""", unsafe_allow_html=True)
@@ -695,7 +684,7 @@ def apply_preset(key):
 # ══════════════════════════════════════════════════════════════════════════════
 with col_right:
     def _sec(label):
-        st.markdown(f"<div style='color:#010408;font-size:10px;font-weight:700;letter-spacing:.07em;"
+        st.markdown(f"<div style='color:var(--shg-muted);font-size:10px;font-weight:700;letter-spacing:.07em;"
                     f"text-transform:uppercase;margin:10px 0 6px'>{label}</div>", unsafe_allow_html=True)
 
     # ── Preset selector ────────────────────────────────────────────────────────
@@ -724,8 +713,8 @@ with col_right:
             break
     if active_preset:
         st.markdown(
-            f"<div style='background:#1e2535;border:1px solid {active_preset['color']}44;"
-            f"border-radius:6px;padding:6px 9px;font-size:10px;color:#94a3b8;margin-top:2px'>"
+            f"<div style='background:var(--shg-surface);border:1px solid {active_preset['color']}44;"
+            f"border-radius:6px;padding:6px 9px;font-size:10px;color:var(--shg-muted);margin-top:2px'>"
             f"<span style='color:{active_preset['color']};font-weight:700'>{active_preset['label']}</span>"
             f" — {active_preset['desc']}</div>",
             unsafe_allow_html=True,
@@ -784,7 +773,7 @@ with col_right:
 # MIDDLE — Render & Output
 # ══════════════════════════════════════════════════════════════════════════════
 with col_mid:
-    st.markdown("<div style='color:#475569;font-size:10px;font-weight:700;letter-spacing:.07em;"
+    st.markdown("<div style='color:var(--shg-muted);font-size:10px;font-weight:700;letter-spacing:.07em;"
                 "text-transform:uppercase;margin-bottom:8px'>Synthetic SHG Output</div>",
                 unsafe_allow_html=True)
 
@@ -922,7 +911,7 @@ with col_mid:
 
         # ── Orientation field preview ─────────────────────────────────────────
         st.markdown("---")
-        st.markdown("<div style='color:#475569;font-size:10px;font-weight:700;letter-spacing:.07em;"
+        st.markdown("<div style='color:var(--shg-muted);font-size:10px;font-weight:700;letter-spacing:.07em;"
                     "text-transform:uppercase;margin-bottom:6px'>Orientation Field</div>",
                     unsafe_allow_html=True)
 
@@ -972,19 +961,19 @@ with col_mid:
                 file_name="vector_field.json", mime="application/json", use_container_width=True)
     else:
         st.markdown("""
-        <div style="background:#161b27;border:1px solid #2d3650;border-radius:8px;
+        <div style="background:var(--shg-surface);border:1px solid var(--shg-border);border-radius:8px;
              padding:40px 20px;text-align:center;margin-top:8px">
           <div style="font-size:32px;margin-bottom:10px;opacity:0.4">⟳</div>
-          <div style="color:#64748b;font-size:12px;line-height:1.6">
-            Paint density, orientation vectors,<br>optionally place wells,<br>
-            then click <b style="color:#4ade80">Render</b>.
+                    <div style="color:var(--shg-muted);font-size:12px;line-height:1.6">
+                        Paint density, orientation vectors,<br>optionally place wells,<br>
+                        then click <b style="color:#cc1543">Render</b>.
           </div>
         </div>""", unsafe_allow_html=True)
         
 st.markdown("""
-<div style="margin-top:32px;padding-top:12px;border-top:1px solid #2d3650;
+<div style="margin-top:32px;padding-top:12px;border-top:1px solid var(--shg-border);
      display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-  <span style="color:#334155;font-size:10px">
+    <span style="color:var(--shg-muted);font-size:10px">
     © Bhaskar Lab · Computational Biology &amp; Machine Learning · University of Wisconsin–Madison
   </span>
   <span style="color:#cc1543;font-size:10px;font-weight:600">CBML</span>
