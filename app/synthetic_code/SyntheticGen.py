@@ -37,6 +37,7 @@ def generate_synthetic_shg(
     show_plots=True,
     save_prefix="synthetic",
     minimal=False,
+    custom_density=None,
 ):
     rng = np.random.default_rng(seed)
 
@@ -51,7 +52,7 @@ def generate_synthetic_shg(
     W = np.ones_like(X)
     hard_zero_mask = np.zeros(X.shape, dtype=bool)
 
-    D = vecfield.make_density(W, hard_zero_mask, G_density, L_density, rng)
+    D = custom_density if custom_density is not None else vecfield.make_density(W, hard_zero_mask, G_density, L_density, rng)
     Qx_g, Qy_g = vecfield.make_global_orientation(X.shape, G_align, G_curve, rng)
     Qx_w, Qy_w, influence = vecfield.make_well_orientation(X, Y, Qx_g, Qy_g, wells)
     Qx, Qy = vecfield.relax(
@@ -260,7 +261,8 @@ def generate_synthetic_shg_3d(
     depth=3,
     n_layers=3,
     focal_depth=1,
-    depth_blur_scale=5
+    depth_blur_scale=5,
+    custom_density=None,
 ):
     rng = np.random.default_rng(seed)
 
@@ -275,7 +277,7 @@ def generate_synthetic_shg_3d(
     W = np.ones_like(X)
     hard_zero_mask = np.zeros(X.shape, dtype=bool)
 
-    D = vecfield.make_density(W, hard_zero_mask, G_density, L_density, rng)
+    D = custom_density if custom_density is not None else vecfield.make_density(W, hard_zero_mask, G_density, L_density, rng)
     Qx_g, Qy_g = vecfield.make_global_orientation(X.shape, G_align, G_curve, rng)
     Qx_w, Qy_w, influence = vecfield.make_well_orientation(X, Y, Qx_g, Qy_g, wells)
     Qx, Qy = vecfield.relax(
