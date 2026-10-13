@@ -11,6 +11,7 @@ import numpy as np
 import streamlit as st
 import streamlit.components.v1 as components
 from PIL import Image
+from scipy.ndimage import zoom
 
 from typing import List, Tuple, Optional, Dict, Any
 
@@ -101,6 +102,14 @@ def generate_custom_fields_from_canvas(
 
     return D, wells, hard_zero_mask
 
+RESOLUTION_FACTOR = 2.0
+
+def upsample_canvas(arr_flat, canvas_size, target_shape):
+    """Upsample a flat canvas array to match the simulation grid shape."""
+    arr_2d = arr_flat.reshape(canvas_size, canvas_size).astype(np.float64)
+    zoom_y = target_shape[0] / canvas_size
+    zoom_x = target_shape[1] / canvas_size
+    return zoom(arr_2d, (zoom_y, zoom_x), order=1)  # bilinear
 
 # ── Session state ──────────────────────────────────────────────────────────────
 def _ss(k, v):
@@ -414,9 +423,19 @@ def blend_orientation(Qx_g, Qy_g, vec_qx, vec_qy, vec_mag):
     return Qx / norm, Qy / norm
 
 # ── Custom orientation field plot ─────────────────────────────────────────────
-def plot_fields(ax, D, Qx, Qy, splines, image_size,
+def plot_fields(ax, D, Qx, Qy, splines, image_size, grid_size=None,
                 show_density=True, show_quiver=True, show_splines=True):
-    ax.set_xlim(0, image_size); ax.set_ylim(image_size, 0); ax.axis("off")
+    
+    # grid_size is the actual simulation resolution (e.g. 2048).
+    # image_size is the display size we want to plot at (e.g. 512).
+    # If they differ, spline coords need scaling down for display.
+    if grid_size is None:
+        grid_size = image_size
+    display_scale = image_size / grid_size  # e.g. 512/2048 = 0.25
+
+    ax.set_xlim(0, image_size)
+    ax.set_ylim(image_size, 0)
+    ax.axis("off")
 
     if show_density:
         ax.imshow(D, cmap="magma", origin="upper",
@@ -424,16 +443,17 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size,
 
     if show_quiver and Qx is not None:
         shape = Qx.shape
-        step = max(1, image_size // 24)
+        step = max(1, grid_size // 24)
         rows = np.arange(step//2, shape[0], step)
         cols = np.arange(step//2, shape[1], step)
         R, C = np.meshgrid(rows, cols, indexing="ij")
         theta = 0.5 * np.arctan2(Qy[R, C], Qx[R, C])
         u =  np.cos(theta)
         v = -np.sin(theta)
-        ax.quiver(C, R, u, v,
-                  color="#f59e0b",      # amber — distinct from white splines
-                  headlength=4,         # restore arrowhead
+        # Scale quiver positions to display space
+        ax.quiver(C * display_scale, R * display_scale, u, v,
+                  color="#f59e0b",
+                  headlength=4,
                   headaxislength=3.5,
                   headwidth=3,
                   pivot="middle",
@@ -444,7 +464,10 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size,
     if show_splines and splines:
         for sp in splines:
             if len(sp) > 0:
-                ax.plot(sp[:, 1], sp[:, 0], color="white", linewidth=1.0, alpha=0.75)
+                # sp[:,0] = row (y), sp[:,1] = col (x) in grid coords
+                ax.plot(sp[:, 1] * display_scale,
+                        sp[:, 0] * display_scale,
+                        color="white", linewidth=1.0, alpha=0.75)
 
     return ax
 
@@ -782,40 +805,81 @@ with col_mid:
     if render_btn:
         with st.spinner("Generating SHG image…"):
             rng   = np.random.default_rng(int(st.session_state.seed))
-            X, Y  = create_grid(CANVAS_SIZE, resolution_factor=1.0)
+            X, Y  = create_grid(CANVAS_SIZE, resolution_factor=RESOLUTION_FACTOR)
             shape = X.shape
 
-            well_configs = [{"x":w["x"],"y":w["y"],"w":w.get("rx",45),"h":w.get("ry",28),"angle":w.get("angle",0)}
-                            for w in st.session_state.wells]
+            # well_configs = [{"x":w["x"],"y":w["y"],"w":w.get("rx",45),"h":w.get("ry",28),"angle":w.get("angle",0)}
+            #                 for w in st.session_state.wells]
+            # _, wells_arr, hard_mask = generate_custom_fields_from_canvas(
+            #     density_configs=[], well_configs=well_configs, shape=shape)
+
+            # D_raw = st.session_state.density_arr.reshape(CANVAS_SIZE, CANVAS_SIZE).astype(np.float64)
+            # if D_raw.max() < 1e-4: D_raw = np.full((CANVAS_SIZE, CANVAS_SIZE), 0.3)
+            # D = np.where(hard_mask, 0.0, D_raw)
+
+            # # Global orientation field
+            # # base_field = np.atan2(st.session_state.vec_qx_arr,st.session_state.vec_qy_arr)
+            # # basex = np.array(st.session_state.vec_qx_arr)
+            # # basey = np.array(st.session_state.vec_qy_arr)
+            # # basemag = np.array(st.session_state.vec_mag_arr)
+            # # basex = basex.reshape(CANVAS_SIZE,CANVAS_SIZE)
+            # # basey = basey.reshape(CANVAS_SIZE,CANVAS_SIZE)
+            # # basemag = basemag.reshape(CANVAS_SIZE,CANVAS_SIZE)
+            # # Qx_g, Qy_g = make_global_orientation(shape, st.session_state.G_align, st.session_state.G_curve, rng,
+            # #                                      basex=basex,
+            # #                                      basey =basey,
+            # #                                      basemag = basemag
+            # #                                     )
+
+            # Qx_g, Qy_g = make_global_orientation(shape, st.session_state.G_align, st.session_state.G_curve, rng,)
+            
+            # print(Qx_g.shape, Qy_g.shape)
+            # # Blend with user-painted vector field
+            # Qx_g, Qy_g = blend_orientation(
+            #     Qx_g, Qy_g,
+            #     st.session_state.vec_qx_arr,
+            #     st.session_state.vec_qy_arr,
+            #     st.session_state.vec_mag_arr,
+            # )
+            
+            D_raw = upsample_canvas(st.session_state.density_arr, CANVAS_SIZE, shape)
+            if D_raw.max() < 1e-4:
+                D_raw = np.full(shape, 0.3)
+
+            vec_qx_up  = upsample_canvas(st.session_state.vec_qx_arr,  CANVAS_SIZE, shape)
+            vec_qy_up  = upsample_canvas(st.session_state.vec_qy_arr,  CANVAS_SIZE, shape)
+            vec_mag_up = upsample_canvas(st.session_state.vec_mag_arr,  CANVAS_SIZE, shape)
+            # Re-normalize the upsampled Q-field (bilinear interp breaks unit length)
+            vec_q_norm = np.sqrt(vec_qx_up**2 + vec_qy_up**2)
+            vec_q_norm = np.where(vec_q_norm < 1e-8, 1.0, vec_q_norm)
+            vec_qx_up /= vec_q_norm
+            vec_qy_up /= vec_q_norm
+
+            # ── Wells: scale pixel coords from canvas space to grid space ──────────
+            scale = RESOLUTION_FACTOR
+            well_configs = [
+                {
+                    "x":     w["x"]           * scale,
+                    "y":     w["y"]           * scale,
+                    "w":     w.get("rx", 45)  * scale,
+                    "h":     w.get("ry", 28)  * scale,
+                    "angle": w.get("angle", 0),        # angle is unitless, no scaling
+                }
+                for w in st.session_state.wells
+            ]
             _, wells_arr, hard_mask = generate_custom_fields_from_canvas(
                 density_configs=[], well_configs=well_configs, shape=shape)
 
-            D_raw = st.session_state.density_arr.reshape(CANVAS_SIZE, CANVAS_SIZE).astype(np.float64)
-            if D_raw.max() < 1e-4: D_raw = np.full((CANVAS_SIZE, CANVAS_SIZE), 0.3)
             D = np.where(hard_mask, 0.0, D_raw)
 
-            # Global orientation field
-            # base_field = np.atan2(st.session_state.vec_qx_arr,st.session_state.vec_qy_arr)
-            # basex = np.array(st.session_state.vec_qx_arr)
-            # basey = np.array(st.session_state.vec_qy_arr)
-            # basemag = np.array(st.session_state.vec_mag_arr)
-            # basex = basex.reshape(CANVAS_SIZE,CANVAS_SIZE)
-            # basey = basey.reshape(CANVAS_SIZE,CANVAS_SIZE)
-            # basemag = basemag.reshape(CANVAS_SIZE,CANVAS_SIZE)
-            # Qx_g, Qy_g = make_global_orientation(shape, st.session_state.G_align, st.session_state.G_curve, rng,
-            #                                      basex=basex,
-            #                                      basey =basey,
-            #                                      basemag = basemag
-            #                                     )
+            # ── Orientation field ──────────────────────────────────────────────────
+            Qx_g, Qy_g = make_global_orientation(shape, st.session_state.G_align, st.session_state.G_curve, rng)
 
-            Qx_g, Qy_g = make_global_orientation(shape, st.session_state.G_align, st.session_state.G_curve, rng,)
-
-            # Blend with user-painted vector field
             Qx_g, Qy_g = blend_orientation(
                 Qx_g, Qy_g,
-                st.session_state.vec_qx_arr,
-                st.session_state.vec_qy_arr,
-                st.session_state.vec_mag_arr,
+                vec_qx_up.ravel(),   # blend_orientation reshapes internally
+                vec_qy_up.ravel(),
+                vec_mag_up.ravel(),
             )
 
             # Well influence
@@ -877,6 +941,7 @@ with col_mid:
             st.session_state.shg_D       = D
             st.session_state.shg_Qx      = Qx
             st.session_state.shg_Qy      = Qy
+            st.session_state.shg_grid_size = shape[0]
             st.session_state.active_params = dict(
                 seed=int(st.session_state.seed), num_fibers=num_fibers,
                 spline_length=spline_length, thickness=float(st.session_state.thickness),
@@ -928,6 +993,7 @@ with col_mid:
             Qx=st.session_state.shg_Qx, Qy=st.session_state.shg_Qy,
             splines=st.session_state.shg_splines,
             image_size=CANVAS_SIZE,
+            grid_size=st.session_state.shg_grid_size,   # add this
             show_density=st.session_state.show_density,
             show_quiver=st.session_state.show_quiver,
             show_splines=st.session_state.show_splines,
@@ -944,6 +1010,7 @@ with col_mid:
             plot_fields(ax=ax2, D=st.session_state.shg_D,
                         Qx=st.session_state.shg_Qx, Qy=st.session_state.shg_Qy,
                         splines=st.session_state.shg_splines, image_size=CANVAS_SIZE,
+                        grid_size=st.session_state.shg_grid_size,   # add this
                         show_density=True, show_quiver=True, show_splines=True)
             fig2.tight_layout(pad=0)
             buf2 = io.BytesIO(); fig2.savefig(buf2,format="png",bbox_inches="tight",pad_inches=0,facecolor="#0d1117")
