@@ -201,14 +201,14 @@ st.markdown(f"""
     gap: 1px;
   }}
   .brand-lab-name {{
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 700;
     color: #cc1543;
     letter-spacing: -0.01em;
     line-height: 1.2;
   }}
   .brand-lab-sub {{
-    font-size: 10px;
+    font-size: 14px;
     color: var(--shg-muted);
     font-weight: 400;
     letter-spacing: 0.02em;
@@ -219,13 +219,13 @@ st.markdown(f"""
     gap: 2px;
   }}
   .brand-app-title {{
-    font-size: 15px;
+    font-size: 24px;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--shg-text);
   }}
   .brand-app-sub {{
-    font-size: 11px;
+    font-size: 15px;
     color: var(--shg-muted);
   }}
   .brand-right img {{
@@ -296,7 +296,8 @@ st.markdown("""
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 14px;
+    font-size: 16px;
+    line-height: 1.5;
     color: var(--shg-text);
     font-weight: 400;
     letter-spacing: 0;
@@ -329,7 +330,7 @@ st.markdown("""
     border: 1px solid var(--shg-border);
     border-radius: 6px;
     padding: 6px 10px;
-    font-size: 11px;
+    font-size: 15px;
     color: var(--shg-text);
     width: max-content;          /* grow to fit the text naturally */
     max-width: min(320px, 90vw); /* but never wider than 320px or 90% of viewport */
@@ -344,6 +345,35 @@ st.markdown("""
 }
 /* Flip left when near right edge */
  .tip.flip:hover::after { left: auto; right: 18px; }
+</style>
+""", unsafe_allow_html=True)
+
+
+# Consistent readable type for Streamlit controls.
+st.markdown("""
+<style>
+[data-testid="stButton"] button p,
+[data-testid="stDownloadButton"] button p,
+[data-testid="stCheckbox"] label p,
+[data-testid="stNumberInput"] input {
+    font-size: 16px !important;
+    line-height: 1.5;
+}
+[data-testid="stSliderTickBarMin"],
+[data-testid="stSliderTickBarMax"],
+[data-testid="stSliderThumbValue"] {
+    font-size: 15px !important;
+}
+[data-testid="stButton"] button,
+[data-testid="stDownloadButton"] button {
+    min-height: 42px;
+    padding: 8px 12px;
+}
+[data-testid="stButton"] button p {
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -566,11 +596,11 @@ with col_left:
     <div style="display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:6px">
         <div style="width:72px;height:6px;border-radius:3px;background:linear-gradient(to right,#440154,#3b528b,#21908d,#5dc963,#fde725)"></div>
-        <span style="color:var(--shg-muted);font-size:10px">density</span>
+        <span style="color:var(--shg-muted);font-size:14px">density</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         <div style="width:18px;height:6px;border-radius:3px;background:#a78bfa"></div>
-        <span style="color:var(--shg-muted);font-size:10px">painted orientation</span>
+        <span style="color:var(--shg-muted);font-size:14px">painted orientation</span>
       </div>
     </div>""", unsafe_allow_html=True)
 
@@ -579,7 +609,7 @@ with col_left:
     has_v   = float(st.session_state.vec_mag_arr.max()) > 1e-3
     n_wells = len(st.session_state.wells)
     st.markdown(f"""
-    <div style="background:var(--shg-surface);border:1px solid var(--shg-border);border-radius:8px;padding:9px 12px;font-size:11px;margin-top:8px">
+    <div style="background:var(--shg-surface);border:1px solid var(--shg-border);border-radius:8px;padding:9px 12px;font-size:15px;margin-top:8px">
       <div style="display:flex;gap:16px;flex-wrap:wrap">
         <span style="color:var(--shg-muted)">Density: <span style="color:{'#4ade80' if has_d else '#f87171'}">{'painted' if has_d else 'empty'}</span></span>
         <span style="color:var(--shg-muted)">Vectors: <span style="color:{'#a78bfa' if has_v else '#64748b'}">{'painted' if has_v else 'empty'}</span></span>
@@ -707,7 +737,7 @@ def apply_preset(key):
 # ══════════════════════════════════════════════════════════════════════════════
 with col_right:
     def _sec(label):
-        st.markdown(f"<div style='color:var(--shg-muted);font-size:10px;font-weight:700;letter-spacing:.07em;"
+        st.markdown(f"<div style='color:var(--shg-muted);font-size:14px;font-weight:700;letter-spacing:.07em;"
                     f"text-transform:uppercase;margin:10px 0 6px'>{label}</div>", unsafe_allow_html=True)
 
     # ── Preset selector ────────────────────────────────────────────────────────
@@ -737,7 +767,7 @@ with col_right:
     if active_preset:
         st.markdown(
             f"<div style='background:var(--shg-surface);border:1px solid {active_preset['color']}44;"
-            f"border-radius:6px;padding:6px 9px;font-size:10px;color:var(--shg-muted);margin-top:2px'>"
+            f"border-radius:6px;padding:6px 9px;font-size:14px;color:var(--shg-muted);margin-top:2px'>"
             f"<span style='color:{active_preset['color']};font-weight:700'>{active_preset['label']}</span>"
             f" — {active_preset['desc']}</div>",
             unsafe_allow_html=True,
@@ -796,7 +826,7 @@ with col_right:
 # MIDDLE — Render & Output
 # ══════════════════════════════════════════════════════════════════════════════
 with col_mid:
-    st.markdown("<div style='color:var(--shg-muted);font-size:10px;font-weight:700;letter-spacing:.07em;"
+    st.markdown("<div style='color:var(--shg-muted);font-size:14px;font-weight:700;letter-spacing:.07em;"
                 "text-transform:uppercase;margin-bottom:8px'>Synthetic SHG Output</div>",
                 unsafe_allow_html=True)
 
@@ -976,7 +1006,7 @@ with col_mid:
 
         # ── Orientation field preview ─────────────────────────────────────────
         st.markdown("---")
-        st.markdown("<div style='color:var(--shg-muted);font-size:10px;font-weight:700;letter-spacing:.07em;"
+        st.markdown("<div style='color:var(--shg-muted);font-size:14px;font-weight:700;letter-spacing:.07em;"
                     "text-transform:uppercase;margin-bottom:6px'>Orientation Field</div>",
                     unsafe_allow_html=True)
 
@@ -1031,7 +1061,7 @@ with col_mid:
         <div style="background:var(--shg-surface);border:1px solid var(--shg-border);border-radius:8px;
              padding:40px 20px;text-align:center;margin-top:8px">
           <div style="font-size:32px;margin-bottom:10px;opacity:0.4">⟳</div>
-                    <div style="color:var(--shg-muted);font-size:12px;line-height:1.6">
+                    <div style="color:var(--shg-muted);font-size:16px;line-height:1.6">
                         Paint density, orientation vectors,<br>optionally place wells,<br>
                         then click <b style="color:#cc1543">Render</b>.
           </div>
@@ -1040,9 +1070,9 @@ with col_mid:
 st.markdown("""
 <div style="margin-top:32px;padding-top:12px;border-top:1px solid var(--shg-border);
      display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <span style="color:var(--shg-muted);font-size:10px">
+    <span style="color:var(--shg-muted);font-size:14px">
     © Bhaskar Lab · Computational Biology &amp; Machine Learning · University of Wisconsin–Madison
   </span>
-  <span style="color:#cc1543;font-size:10px;font-weight:600">CBML</span>
+  <span style="color:#cc1543;font-size:14px;font-weight:600">CBML</span>
 </div>
 """, unsafe_allow_html=True)
