@@ -8,7 +8,7 @@ body { background:var(--shg-bg, #ffffff); color:var(--shg-text, #0f172a); font-f
        overscroll-behavior: none; }
 #root { display:flex; flex-direction:column; gap:8px; padding:6px 6px 10px; width:100%; }
 
-.toolbar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:2px 0 4px; min-height:32px; }
+.toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:2px 0 6px; min-height:32px; }
 .btn { padding:6px 11px; border-radius:6px; border:1.5px solid var(--shg-border, #cbd5e1); background:transparent; color:var(--shg-muted, #64748b);
        cursor:pointer; font-size:14px; font-weight:600; font-family:inherit; line-height:1.4; white-space:nowrap; flex-shrink:0; }
 .btn:hover { border-color:var(--shg-text, #0f172a); color:var(--shg-text, #0f172a); }
@@ -19,7 +19,7 @@ body { background:var(--shg-bg, #ffffff); color:var(--shg-text, #0f172a); font-f
 .btn.on-move  { border-color:#f59e0b; background:#f59e0b20; color:#f59e0b; }
 .btn.on-del   { border-color:#f87171; background:#f8717120; color:#f87171; }
 .btn.danger:hover { border-color:#f87171; color:#f87171; }
-.sep { width:1px; height:16px; background:var(--shg-border, #cbd5e1); flex-shrink:0; }
+.sep { width:100%; height:0; background:var(--shg-border, #cbd5e1); flex-shrink:0; }
 .sl-row { display:flex; align-items:center; gap:4px; }
 .sl-lbl { color:var(--shg-muted, #64748b); font-size:14px; white-space:nowrap; }
 .sl-val { color:var(--shg-text, #0f172a); font-size:14px; min-width:24px; text-align:right; font-variant-numeric:tabular-nums; }
@@ -333,7 +333,7 @@ function mkSep(){ const d=document.createElement("div"); d.className="sep"; retu
 function mkSlider(label,val,min,max,thumbCls,onChange){
   const row=document.createElement("div"); row.className="sl-row";
   const lbl=document.createElement("span"); lbl.className="sl-lbl"; lbl.textContent=label;
-  const inp=document.createElement("input"); inp.type="range"; inp.min=min; inp.max=max; inp.value=val;
+  const inp=document.createElement("input"); inp.type="range"; inp.setAttribute("aria-label",label); inp.min=min; inp.max=max; inp.value=val;
   if(thumbCls) inp.classList.add(thumbCls);
   const valEl=document.createElement("span"); valEl.className="sl-val"; valEl.textContent=val;
   inp.addEventListener("input",()=>{ valEl.textContent=inp.value; onChange(+inp.value); });
@@ -347,17 +347,17 @@ function buildToolbar(){
     tb.append(
       mkBtn("＋ Paint", ()=>setTool("paint"), tool==="paint"?"on-paint":""),
       mkBtn("− Erase",  ()=>setTool("erase"), tool==="erase"?"on-erase":""),
-      mkBtn("→ Vector", ()=>setTool("vec"),   tool==="vec"  ?"on-vec":  ""),
+      mkBtn("→ Direction", ()=>setTool("vec"),   tool==="vec"  ?"on-vec":  ""),
       mkSep(),
       mkSlider("Brush", brushSz, 4, 120, null,     v=>{brushSz=v;}),
-      mkSlider("Str",   brushStr,1, 100, tool==="vec"?"purple":null, v=>{brushStr=v;}),
+      mkSlider("Strength",   brushStr,1, 100, tool==="vec"?"purple":null, v=>{brushStr=v;}),
       mkSep(),
       mkBtn("Clear density",()=>{ densityF32.fill(0); render(); emitDensity(); },"danger"),
-      mkBtn("Clear vectors", ()=>{ vecCxF32.fill(0); vecCyF32.fill(0); vecMagF32.fill(0); render(); emitVec(); },"danger")
+      mkBtn("Clear directions", ()=>{ vecCxF32.fill(0); vecCyF32.fill(0); vecMagF32.fill(0); render(); emitVec(); },"danger")
     );
   } else {
     const cnt=document.createElement("span"); cnt.className="wcount";
-    cnt.textContent=wells.length+" well"+(wells.length!==1?"s":"");
+    cnt.textContent=wells.length+" guide"+(wells.length!==1?"s":"");
     tb.append(
       mkBtn("＋ Place",  ()=>setTool("place"), tool==="place"?"on-place":""),
       mkBtn("↖ Move",   ()=>setTool("move"),  tool==="move" ?"on-move" :""),
@@ -381,9 +381,9 @@ function buildHint(){
     paint:"Paint density — successive strokes accumulate.",
     erase:"Erase density.",
     vec:  "Drag to paint fiber orientation. The direction you drag is the fiber direction.",
-    place:"Click to place an orientation well.",
+    place:"Click to add an elliptical guide. Nearby fibers follow its edge.",
     move: "Drag to reposition. Click to select and inspect.",
-    del:  "Click a well to delete it.",
+    del:  "Click a guide to delete it.",
   })[tool]||"";
 }
 
@@ -392,7 +392,7 @@ function updateWellPanel(){
   const panel=document.getElementById("wellPanel");
   if(selWell<0||MODE!=="wells"){panel.classList.remove("show");autoHeight();return;}
   const w=wells[selWell];
-  panel.innerHTML=`<div class="wp-title">Well ${selWell+1}</div>`;
+  panel.innerHTML=`<div class="wp-title">Guide ${selWell+1}</div>`;
   panel.classList.add("show");
   const grid=document.createElement("div"); grid.className="wp-grid";
   [["rx","Radius X",8,160],["ry","Radius Y",8,160],["angle","Angle °",0,179]].forEach(([key,lbl,mn,mx])=>{
