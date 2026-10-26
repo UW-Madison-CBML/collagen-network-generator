@@ -149,163 +149,52 @@ ACCENT = "#cc1543"
 
 
 # ── Page config ────────────────────────────────────────────────────────────────
-st.set_page_config(page_title="SHG Simulator", layout="wide", initial_sidebar_state="expanded",page_icon="assets/uw-logo-vertical-color-web-digital.png")
-# st.markdown("""<style>
-# html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{background:#0d1117!important;color:#e2e8f0!important}
-# [data-testid="stAppViewBlockContainer"]{padding-top:0.8rem!important}
-# #MainMenu,footer,header,[data-testid="stDeployButton"],[data-testid="stToolbar"],[data-testid="collapsedControl"]{display:none!important}
-# *{font-family:Inter,system-ui,sans-serif!important}
-# [data-testid="stSlider"] label{color:#94a3b8!important;font-size:12px!important}
-# [data-testid="stButton"]>button{background:#1e2535!important;border:1.5px solid #2d3650!important;color:#94a3b8!important;border-radius:7px!important;transition:all .15s!important}
-# [data-testid="stButton"]>button:hover{border-color:#4ade8066!important;color:#4ade80!important}
-# button[kind="primary"]{background:#4ade8022!important;border-color:#4ade80!important;color:#4ade80!important;font-weight:700!important}
-# button[kind="primary"]:hover{background:#4ade8033!important}
-# [data-testid="stExpander"]{background:#161b27!important;border:1px solid #2d3650!important;border-radius:8px!important}
-# [data-testid="stExpander"] summary{color:#94a3b8!important}
-# hr{border-color:#2d3650!important;margin:0.6rem 0!important}
-# [data-testid="stDownloadButton"]>button{background:#60a5fa18!important;border:1.5px solid #60a5fa!important;color:#60a5fa!important;border-radius:7px!important;width:100%!important}
-# [data-testid="stNumberInput"] input{background:#1e2535!important;border:1px solid #2d3650!important;color:#e2e8f0!important;border-radius:6px!important}
-# [data-testid="stCheckbox"] label{color:#94a3b8!important;font-size:12px!important}
-# iframe[title="shg_canvas"]{min-height:660px!important}
-# </style>""", unsafe_allow_html=True)
-
+st.set_page_config(page_title="SHG Simulator", layout="wide", page_icon="assets/uw-logo-vertical-color-web-digital.png")
 st.markdown(f"""
 <style>
-    :root {{
-        --shg-surface: var(--secondary-background-color, #f8fafc);
-        --shg-text: var(--text-color, #0f172a);
-        --shg-muted: color-mix(in srgb, var(--text-color, #0f172a) 65%, var(--background-color, #ffffff));
-        --shg-border: color-mix(in srgb, var(--text-color, #0f172a) 18%, var(--background-color, #ffffff));
-    }}
-  .brand-bar {{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 0 10px;
-    border-bottom: 1px solid var(--shg-border);
-    margin-bottom: 10px;
-  }}
-  .brand-left {{
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }}
-  .brand-divider {{
-    width: 1px;
-    height: 36px;
-    background: #cc154366;
-    flex-shrink: 0;
-  }}
-  .brand-lab {{
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }}
-  .brand-lab-name {{
-    font-size: 16px;
-    font-weight: 700;
-    color: #cc1543;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }}
-  .brand-lab-sub {{
-    font-size: 14px;
-    color: var(--shg-muted);
-    font-weight: 400;
-    letter-spacing: 0.02em;
-  }}
-  .brand-app {{
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }}
-  .brand-app-title {{
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--shg-text);
-  }}
-  .brand-app-sub {{
-    font-size: 15px;
-    color: var(--shg-muted);
-  }}
-  .brand-right img {{
-    height: 40px;
-    opacity: 0.9;
-  }}
-  /* Tint the active-preset indicator and primary button to match UW red */
-  button[kind="primary"] {{
-    background: #cc154322 !important;
-    border-color: #cc1543 !important;
-    color: #cc1543 !important;
-  }}
-  button[kind="primary"]:hover {{
-    background: #cc154333 !important;
-  }}
-  /* Tint the render-button glow */
-  .stButton > button:hover {{
-    border-color: #cc154366 !important;
-    color: #cc1543 !important;
-  }}
-</style>
-
-<div class="brand-bar">
-  <div class="brand-left">
-    <img src="data:image/png;base64,{LOGO_B64_horizontal}" style="height:55px;opacity:0.95" alt="UW–Madison">
-    <div class="brand-divider"></div>
-    <div class="brand-lab">
-      <div class="brand-lab-name">CBML</div>
-      <div class="brand-lab-sub">Computational Biology &amp; Machine Learning</div>
-    <div class="brand-lab-sub">Bhaskar Lab · UW–Madison</div>
-    </div>
-    <div class="brand-divider"></div>
-    <div class="brand-app">
-    <div class="brand-app-title">SHG Fiber Simulator</div>
-      <div class="brand-app-sub">Interactive Field Editor</div>
-    </div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-# Layout and native control styling.
-st.markdown("""
-<style>
-[data-testid="stMainBlockContainer"] { padding: 4.5rem 2.5rem 2rem; max-width: 1800px; }
-[data-testid="stSidebar"] { min-width: 300px; max-width: 340px; }
-[data-testid="stSidebar"] h1 { font-size: 26px; padding-top: 0; }
-.settings-kicker { font-size: 12px; font-weight: 700; letter-spacing: .12em; color: #cc1543; }
-.brand-bar { margin-bottom: 24px; padding-bottom: 18px; }
-.brand-left { flex-wrap: wrap; }
-[data-testid="stHeadingWithActionElements"] h3 { font-size: 22px; padding-top: 0; }
-[data-testid="stCaptionContainer"] p { font-size: 14px; line-height: 1.5; }
+:root {{
+  --shg-surface: var(--secondary-background-color, #f7f7f7);
+  --shg-text: var(--text-color, #222222);
+  --shg-muted: color-mix(in srgb, var(--text-color, #222222) 80%, var(--background-color, #ffffff));
+  --shg-border: color-mix(in srgb, var(--text-color, #222222) 24%, var(--background-color, #ffffff));
+}}
+[data-testid="stMainBlockContainer"] {{ padding: 4.5rem 2.5rem 2rem; max-width: 1560px; }}
+.research-header {{ display:flex; align-items:center; justify-content:space-between;
+  gap:24px; flex-wrap:wrap; border-bottom:3px solid #c5050c; padding-bottom:20px; margin-bottom:20px; }}
+.research-header h1 {{ font-size:30px; font-weight:600; padding:0; margin:0; line-height:1.25; }}
+.research-header p {{ margin:6px 0 0; font-size:16px; color:var(--shg-muted); }}
+.research-header img {{ width:190px; height:auto; }}
+[data-testid="stHeadingWithActionElements"] h3 {{ font-size:23px; padding-top:0; }}
+[data-testid="stCaptionContainer"] p {{ font-size:16px; line-height:1.5; color:var(--shg-muted); }}
 [data-testid="stWidgetLabel"] p, [data-testid="stButton"] button p,
 [data-testid="stDownloadButton"] button p, [data-testid="stNumberInput"] input,
-[data-testid="stExpander"] summary p { font-size: 16px; line-height: 1.45; }
-[data-testid="stButton"] button, [data-testid="stDownloadButton"] button {
-    min-height: 42px; padding: 8px 12px; border-radius: 8px;
-}
-[data-testid="stButton"] button p { white-space: normal; word-break: normal; }
-button[aria-label^="Help for"] { color: #cc1543; }
-button[aria-label^="Help for"] svg { width: 20px; height: 20px; }
-[data-testid="stTooltipContent"] { font-size: 15px; line-height: 1.6; }
+[data-testid="stExpander"] summary p, [data-testid="stTabs"] button p {{ font-size:17px; line-height:1.45; }}
+[data-testid="stButton"] button, [data-testid="stDownloadButton"] button {{
+  min-height:44px; padding:8px 14px; border-radius:4px;
+}}
+button[kind="primary"] {{ background:#c5050c!important; border-color:#c5050c!important; color:#fff!important; }}
+button[kind="primary"]:hover {{ background:#9b0000!important; color:#fff!important; }}
+button:focus-visible, input:focus-visible, summary:focus-visible {{ outline:3px solid #c5050c; outline-offset:3px; }}
+button[aria-label^="Help for"] {{ color:#c5050c; min-width:28px; min-height:28px; }}
+button[aria-label^="Help for"] svg {{ width:22px; height:22px; }}
+[role="tooltip"] {{ font-size:16px; line-height:1.5; }}
 [data-testid="stSliderTickBarMin"], [data-testid="stSliderTickBarMax"],
-[data-testid="stSliderThumbValue"] { font-size: 14px; }
-[data-testid="stExpander"] { border-radius: 10px; }
-[data-testid="stExpander"] summary { min-height: 48px; }
-[data-testid="stTabs"] button p { font-size: 16px; }
-.output-empty { aspect-ratio: 1; display: flex; flex-direction: column;
-    justify-content: center; align-items: center; padding: 28px; text-align: center;
-    border: 1px dashed var(--shg-border); border-radius: 12px; background: var(--shg-surface); }
-.empty-mark { font-size: 38px; color: #cc1543; margin-bottom: 18px; }
-.empty-title { font-size: 21px; font-weight: 600; margin-bottom: 10px; }
-.empty-copy { font-size: 15px; line-height: 1.7; color: var(--shg-muted); }
-@media (max-width: 900px) {
-    [data-testid="stMainBlockContainer"] { padding: 4.5rem 1rem 2rem; }
-    .brand-divider { display: none; }
-    .brand-left { gap: 12px; }
-    .brand-lab { display: none; }
-}
+[data-testid="stSliderThumbValue"] {{ font-size:15px; }}
+[data-testid="stExpander"] {{ border-radius:4px; }}
+[data-testid="stExpander"] summary {{ min-height:48px; }}
+.output-empty {{ aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+  border:1px solid var(--shg-border); background:var(--shg-surface); padding:32px;
+  font-size:17px; line-height:1.6; text-align:center; color:var(--shg-muted); }}
+@media (max-width:900px) {{
+  [data-testid="stMainBlockContainer"] {{ padding:4.5rem 1rem 2rem; }}
+  .research-header h1 {{ font-size:26px; }}
+  .research-header img {{ width:160px; }}
+}}
 </style>
+<header class="research-header">
+  <div><h1>SHG Fiber Simulator</h1><p>Bhaskar Lab · Computational Biology &amp; Machine Learning</p></div>
+  <img src="data:image/png;base64,{LOGO_B64_horizontal}" alt="University of Wisconsin–Madison">
+</header>
 """, unsafe_allow_html=True)
 
 # ── Component ──────────────────────────────────────────────────────────────────
@@ -459,6 +348,8 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size, grid_size=None,
 #         st.rerun()
 
 # ── Layout ─────────────────────────────────────────────────────────────────────
+settings_area = st.container()
+st.divider()
 col_left, col_mid = st.columns(2, gap="large")
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -485,10 +376,10 @@ with col_left:
         mode        = st.session_state.active_tab,
         canvas_size = CANVAS_SIZE,
         wells       = st.session_state.wells,
-        density_b64 = to_b64(st.session_state.density_arr),
-        vec_qx_b64  = to_b64(st.session_state.vec_qx_arr),
-        vec_qy_b64  = to_b64(st.session_state.vec_qy_arr),
-        vec_mag_b64 = to_b64(st.session_state.vec_mag_arr),
+        density_b64 = to_b64(st.session_state.density_arr) if np.any(st.session_state.density_arr) else "",
+        vec_qx_b64  = to_b64(st.session_state.vec_qx_arr) if np.any(st.session_state.vec_mag_arr) else "",
+        vec_qy_b64  = to_b64(st.session_state.vec_qy_arr) if np.any(st.session_state.vec_mag_arr) else "",
+        vec_mag_b64 = to_b64(st.session_state.vec_mag_arr) if np.any(st.session_state.vec_mag_arr) else "",
         key         = "shg_canvas",
     )
 
@@ -661,22 +552,24 @@ def apply_selected_preset():
     if key:
         apply_preset(key)
 
-with st.sidebar:
-    st.markdown("<div class='settings-kicker'>NETWORK SETTINGS</div>", unsafe_allow_html=True)
-    st.title("Parameters")
-    st.caption("Start with a preset, then adjust the fibers.")
+with settings_area:
+    st.subheader("Parameters")
     preset_help = "Presets change fiber parameters and keep your painted fields and guides.\n\n" + "\n\n".join(
         f"**{v['label']}** — {v['desc']}" for v in PRESETS.values()
     )
-    choice = st.selectbox("Preset", [None, *PRESETS],
-        format_func=lambda k: "Choose a starting point" if k is None else PRESETS[k]["label"],
-        key="preset_choice", help=preset_help)
+    preset_column, apply_column = st.columns([3, 1], vertical_alignment="bottom")
+    with preset_column:
+        choice = st.selectbox("Preset", [None, *PRESETS],
+            format_func=lambda k: "Custom parameters" if k is None else PRESETS[k]["label"],
+            key="preset_choice", help=preset_help)
+    with apply_column:
+        st.button("Apply preset", on_click=apply_selected_preset,
+                  disabled=choice is None, use_container_width=True)
     if choice:
-        st.caption(PRESETS[choice]["desc"])
-    st.button("Apply preset", on_click=apply_selected_preset,
-              disabled=choice is None, use_container_width=True)
+        st.caption(PRESETS[choice]["desc"] + " Select Apply preset to load these values.")
 
-    with st.expander("Fiber", expanded=True):
+    fiber_settings, alignment_settings, texture_settings = st.columns(3, gap="medium")
+    with fiber_settings, st.expander("Fiber", expanded=False):
         st.slider("Fiber count", 20, 3000, step=10, key="num_fibers",
             help="Number of fibers to generate. More fibers usually make the image denser and take longer to render. Their starting positions follow the density map.")
         st.slider("Fiber length", 20, 400, step=5, key="spline_length",
@@ -684,7 +577,7 @@ with st.sidebar:
         st.slider("Fiber thickness", 0.5, 10.0, step=0.5, key="thickness",
             help="Width used when drawing fibers into the SHG image. Higher values make brighter bands appear thicker without changing the underlying fiber paths.")
 
-    with st.expander("Alignment", expanded=False):
+    with alignment_settings, st.expander("Alignment", expanded=False):
         st.slider("Overall alignment", 0.0, 1.0, step=0.01, key="G_align",
             help="Controls variation in the generated direction field. Lower values produce more varied directions; higher values make directions more consistent. Painted directions can override the generated field locally.")
         st.slider("Follow direction field", 0.0, 1.0, step=0.01, key="L_align",
@@ -692,31 +585,34 @@ with st.sidebar:
         st.slider("Broad curvature", 0.0, 1.0, step=0.01, key="G_curve",
             help="Bends the generated direction field across the whole image. Lower values favor a straighter field; higher values introduce larger curved patterns. Separate from small waves along a fiber.")
 
-    with st.expander("Texture", expanded=False):
+    with texture_settings, st.expander("Texture", expanded=False):
         st.slider("Fiber waviness", 0.0, 1.0, step=0.01, key="L_curve",
             help="Controls local bending, sinusoidal offsets and spline smoothing. Increasing this adds more small-scale waviness; it does not set a wavelength in physical units.")
         st.slider("Wave variation", 0.0, 1.0, step=0.01, key="L_wave_freq",
             help="Controls the spatial field used to vary the waves along fibers. It changes the distribution and clustering of the wavelength factor, rather than specifying one wavelength for every fiber.")
 
-    with st.expander("Depth & focus · advanced", expanded=False):
+    with st.expander("Advanced: depth, focus and random seed", expanded=False):
         st.caption("A layered projection with depth-dependent blur.")
-        st.slider("Fiber layers", 1, 20, step=1, key="n_layers",
-            help="Splits the existing fibers into this many planes. It does not multiply the fiber count. Each plane is blurred according to its distance from the focal plane.")
-        st.slider("Depth range", 0.5, 50.0, step=0.1, key="depth",
-            help="Model depth range used to space the layers and calculate defocus blur. Higher values increase separation and blur away from focus. These are model units, not calibrated micrometers.")
-        st.slider("Focus position", 0.0, 1.0, step=0.1, key="focal_plane",
-            help="Position within the depth range: 0 is the front and 1 is the back. With one layer, the layer is at the front; moving focus away from 0 adds blur.")
+        depth_columns = st.columns(3, gap="medium")
+        with depth_columns[0]:
+            st.slider("Fiber layers", 1, 20, step=1, key="n_layers",
+                help="Splits the existing fibers into this many planes. It does not multiply the fiber count. Each plane is blurred according to its distance from the focal plane.")
+        with depth_columns[1]:
+            st.slider("Depth range", 0.5, 50.0, step=0.1, key="depth",
+                help="Model depth range used to space the layers and calculate defocus blur. Higher values increase separation and blur away from focus. These are model units, not calibrated micrometers.")
+        with depth_columns[2]:
+            st.slider("Focus position", 0.0, 1.0, step=0.1, key="focal_plane",
+                help="Position within the depth range: 0 is the front and 1 is the back. With one layer, the layer is at the front; moving focus away from 0 adds blur.")
 
-    with st.expander("Reproducibility", expanded=False):
         st.number_input("Random seed", step=1, key="seed",
             help="Repeat a seed with the same fields, guides and parameters to reproduce the same generated network. Change it to generate another realization.")
-    st.caption("Changes take effect when you render a new image.")
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MIDDLE — Render & Output
 # ══════════════════════════════════════════════════════════════════════════════
 with col_mid:
-    st.subheader("Generated network")
+    st.subheader("Output")
     st.caption("Render the SHG image, then inspect the individual fiber paths.")
     render_btn = st.button("Render image", type="primary", use_container_width=True)
 
@@ -946,11 +842,8 @@ with col_mid:
                     file_name="vector_field.json", mime="application/json", use_container_width=True)
     else:
         st.markdown("""
-        <div class="output-empty">
-          <div class="empty-mark">↗</div>
-          <div class="empty-title">Your network appears here</div>
-          <div class="empty-copy">Paint a field or use the default uniform density.<br>
-          Adjust the parameters, then select <b>Render image</b>.</div>
+        <div class="output-empty">Select Render image to generate an SHG image.<br>
+          An empty density map uses uniform density.
         </div>""", unsafe_allow_html=True)
         
 st.markdown("""
