@@ -52,7 +52,9 @@ input.wp-sl::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:
 .wp-pos { color:var(--shg-muted, #64748b); font-size:20px; }
 .wp-del { padding:4px 12px; border-radius:5px; border:1.5px solid #f8717155; background:#f8717115; color:#f87171; cursor:pointer; font-size:20px; font-weight:600; font-family:inherit; }
 
-.save-row { display:flex; gap:6px; flex-wrap:wrap; }
+details { border-top:1px solid var(--shg-border, #cbd5e1); padding-top:12px; }
+summary { cursor:pointer; font-size:20px; padding:6px 0; }
+.save-row { margin-top:12px; display:flex; gap:6px; flex-wrap:wrap; }
 .save-btn { padding:6px 10px; border-radius:4px; border:1.5px solid var(--shg-border, #cbd5e1); background:transparent; color:var(--shg-muted, #64748b); cursor:pointer; font-size:20px; font-weight:600; font-family:inherit; line-height:1.4; white-space:nowrap; }
 .save-btn:hover { border-color:#60a5fa55; color:#60a5fa; }
 
@@ -71,8 +73,10 @@ input.wp-sl::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:
   </div>
   <div class="toolbar" id="tb"></div>
   <div class="well-panel" id="wellPanel"></div>
-  <div class="save-row" id="saveRow"></div>
   <div class="hint" id="hint"></div>
+  <details id="mapFiles"><summary>Save, load and export maps</summary>
+    <div class="save-row" id="saveRow"></div>
+  </details>
 </div>
 
 <script>
@@ -140,6 +144,8 @@ function setup(){
   window.addEventListener("touchend",   onWindowMouseUp, {passive:false});
   window.addEventListener("touchcancel",onWindowMouseUp, {passive:false});
   buildSaveRow();
+  document.getElementById("mapFiles").addEventListener("toggle", autoHeight);
+  new ResizeObserver(autoHeight).observe(document.getElementById("root"));
   initialized=true;
 }
 
@@ -266,11 +272,11 @@ function buildSaveRow(){
   btnLoad.addEventListener("click",()=>fileInp.click());
 
   const btnDlD=document.createElement("button"); btnDlD.className="save-btn";
-  btnDlD.textContent="↓ Density PNG";
+  btnDlD.textContent="Density PNG";
   btnDlD.addEventListener("click",()=>downloadFieldPNG("density"));
 
   const btnDlV=document.createElement("button"); btnDlV.className="save-btn";
-  btnDlV.textContent="↓ Vector PNG";
+  btnDlV.textContent="Direction PNG";
   btnDlV.addEventListener("click",()=>downloadFieldPNG("vector"));
 
   row.append(btnSave, fileInp, btnLoad, btnDlD, btnDlV);
@@ -377,7 +383,7 @@ function setTool(t){
 
 function buildHint(){
   document.getElementById("hint").textContent=({
-    paint:"Paint density : successive strokes accumulate.",
+    paint:"Paint to increase density. Repeated strokes add more fibers.",
     erase:"Erase density.",
     vec:  "Drag to paint fiber orientation. The direction you drag is the fiber direction.",
     place:"Click to add an elliptical guide. Nearby fibers follow its edge.",

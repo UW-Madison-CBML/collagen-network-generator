@@ -177,12 +177,12 @@ button[kind="primary"]:hover {{ background:#9b0000!important; color:#fff!importa
 button:focus-visible, input:focus-visible, summary:focus-visible {{ outline:3px solid #c5050c; outline-offset:3px; }}
 button[aria-label^="Help for"] {{ color:#c5050c; min-width:28px; min-height:28px; }}
 button[aria-label^="Help for"] svg {{ width:22px; height:22px; }}
-[data-baseweb="select"], [data-baseweb="select"] input, [role="option"] {{ font-size:20px!important; }}
+[data-baseweb="select"] *, [role="listbox"] *, [role="option"] {{ font-size:22px!important; line-height:1.4!important; }}
 [data-testid="stTabs"] [role="tablist"] {{ order:2; }}
 [data-testid="stTabs"] [role="tabpanel"] {{ order:1; padding-top:0; }}
 [role="tooltip"] {{ font-size:20px; line-height:1.5; }}
 [data-testid="stSliderTickBarMin"], [data-testid="stSliderTickBarMax"],
-[data-testid="stSliderThumbValue"] {{ font-size:18px; }}
+[data-testid="stSliderThumbValue"] {{ font-size:20px; }}
 [data-testid="stExpander"] {{ border-radius:4px; }}
 [data-testid="stExpander"] summary {{ min-height:48px; }}
 .output-empty {{ aspect-ratio:1; display:flex; align-items:center; justify-content:center;
@@ -316,7 +316,7 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size, grid_size=None,
 # st.markdown("""
 # <div style="display:flex;align-items:center;gap:10px;padding:4px 0 10px">
 #   <div style="width:9px;height:9px;border-radius:50%;background:#cc1543;box-shadow:0 0 12px #cc154388;flex-shrink:0"></div>
-#   <span style="font-size:18px;font-weight:700;letter-spacing:-0.02em">SHG Fiber Simulator</span>
+#   <span style="font-size:20px;font-weight:700;letter-spacing:-0.02em">SHG Fiber Simulator</span>
 #   <span style="color:#475569;font-size:12px">Interactive Field Editor</span>
 # </div><hr>""", unsafe_allow_html=True)
 
@@ -408,26 +408,23 @@ with col_left:
     <div style="display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:6px">
         <div style="width:72px;height:6px;border-radius:3px;background:linear-gradient(to right,#440154,#3b528b,#21908d,#5dc963,#fde725)"></div>
-        <span style="color:var(--shg-muted);font-size:18px">density</span>
+        <span style="color:var(--shg-muted);font-size:20px">density</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         <div style="width:18px;height:6px;border-radius:3px;background:#a78bfa"></div>
-        <span style="color:var(--shg-muted);font-size:18px">painted orientation</span>
+        <span style="color:var(--shg-muted);font-size:20px">painted orientation</span>
       </div>
     </div>""", unsafe_allow_html=True)
 
-    # Status
-    has_d   = float(st.session_state.density_arr.max()) > 1e-3
-    has_v   = float(st.session_state.vec_mag_arr.max()) > 1e-3
+    # Describe the fields that will be used for rendering.
+    has_d = float(st.session_state.density_arr.max()) > 1e-3
+    has_v = float(st.session_state.vec_mag_arr.max()) > 1e-3
     n_wells = len(st.session_state.wells)
-    st.markdown(f"""
-    <div style="background:var(--shg-surface);border:1px solid var(--shg-border);border-radius:8px;padding:9px 12px;font-size:18px;margin-top:8px">
-      <div style="display:flex;gap:16px;flex-wrap:wrap">
-        <span style="color:var(--shg-muted)">Density: <span style="color:{'#4ade80' if has_d else '#f87171'}">{'painted' if has_d else 'empty'}</span></span>
-        <span style="color:var(--shg-muted)">Vectors: <span style="color:{'#a78bfa' if has_v else '#64748b'}">{'painted' if has_v else 'empty'}</span></span>
-        <span style="color:#64748b">Guides: <span style="color:#60a5fa">{n_wells}</span></span>
-      </div>
-    </div>""", unsafe_allow_html=True)
+    st.caption(
+        f"Density: {'painted' if has_d else 'uniform'}. "
+        f"Direction: {'painted' if has_v else 'generated from parameters'}. "
+        f"Guides: {n_wells}."
+    )
 
 # ── Presets ─────────────────────────────────────────────────────────────────────
 # Mapped from legacy synthetic_class_params. Fields not present in current UI
@@ -552,8 +549,7 @@ def apply_selected_preset():
     if key:
         apply_preset(key)
 
-with settings_area:
-    st.subheader("Parameters")
+with settings_area, st.expander("Parameters", expanded=True):
     selected = st.session_state.get("preset_choice")
     preset_help = (PRESETS[selected]["desc"] if selected else
         "Choose a preset, then select Apply preset. Painted fields and fiber guides are kept.")
@@ -607,8 +603,10 @@ with col_mid:
     st.caption("View the image and fiber paths.")
     render_btn = st.button("Render image", type="primary", use_container_width=True)
 
+    output_slot = st.empty()
     if render_btn:
-        with st.spinner("Generating SHG image…"):
+        output_slot.markdown('<div class="output-empty" role="status" aria-live="polite">Generating SHG image…</div>', unsafe_allow_html=True)
+        with st.container():
             rng   = np.random.default_rng(int(st.session_state.seed))
             X, Y  = create_grid(CANVAS_SIZE, resolution_factor=RESOLUTION_FACTOR)
             shape = X.shape
@@ -756,97 +754,98 @@ with col_mid:
                 n_wells=len(st.session_state.wells), vec_painted=has_v,
             )
 
-    # ── Display ────────────────────────────────────────────────────────────────
-    if st.session_state.shg_image is not None:
-        image_tab, paths_tab = st.tabs(["SHG image", "Fiber paths"])
-        with image_tab:
-            img_arr = st.session_state.shg_image
-            st.image(img_arr, clamp=True, use_container_width=True)
+    with output_slot.container():
+        # ── Display ────────────────────────────────────────────────────────────────
+        if st.session_state.shg_image is not None:
+            image_tab, paths_tab = st.tabs(["SHG image", "Fiber paths"])
+            with image_tab:
+                img_arr = st.session_state.shg_image
+                st.image(img_arr, clamp=True, use_container_width=True)
 
-            c1, c2 = st.columns(2, gap="small")
-            with c1:
-                norm = img_arr if img_arr.dtype==np.uint8 else (
-                    (img_arr-img_arr.min())/(img_arr.max()-img_arr.min()+1e-8)*255).astype(np.uint8)
-                buf = io.BytesIO(); Image.fromarray(norm).save(buf,format="PNG")
-                st.download_button("↓ SHG PNG", data=buf.getvalue(),
-                    file_name=f"shg_{st.session_state.active_params.get('seed',0)}.png",
-                    mime="image/png", use_container_width=True)
-            with c2:
-                st.download_button("↓ Splines JSON",
-                    data=json.dumps({"parameters":st.session_state.active_params,
-                                     "splines":[s.tolist() for s in (st.session_state.shg_splines or [])]},indent=2),
-                    file_name=f"shg_splines_{st.session_state.active_params.get('seed',0)}.json",
-                    mime="application/json", use_container_width=True)
+                c1, c2 = st.columns(2, gap="small")
+                with c1:
+                    norm = img_arr if img_arr.dtype==np.uint8 else (
+                        (img_arr-img_arr.min())/(img_arr.max()-img_arr.min()+1e-8)*255).astype(np.uint8)
+                    buf = io.BytesIO(); Image.fromarray(norm).save(buf,format="PNG")
+                    st.download_button("↓ SHG PNG", data=buf.getvalue(),
+                        file_name=f"shg_{st.session_state.active_params.get('seed',0)}.png",
+                        mime="image/png", use_container_width=True)
+                with c2:
+                    st.download_button("↓ Splines JSON",
+                        data=json.dumps({"parameters":st.session_state.active_params,
+                                         "splines":[s.tolist() for s in (st.session_state.shg_splines or [])]},indent=2),
+                        file_name=f"shg_splines_{st.session_state.active_params.get('seed',0)}.json",
+                        mime="application/json", use_container_width=True)
 
-            with st.expander("Rendered parameters"):
-                st.json(st.session_state.active_params)
+                with st.expander("Rendered parameters"):
+                    st.json(st.session_state.active_params)
 
-        with paths_tab:
-            _ss("preview_density", False)
-            _ss("preview_directions", False)
-            _ss("preview_splines", True)
-            fig, ax = plt.subplots(figsize=(5,5), facecolor="#0d1117")
-            ax.set_facecolor("#0d1117")
-            plot_fields(
-                ax=ax, D=st.session_state.shg_D,
-                Qx=st.session_state.shg_Qx, Qy=st.session_state.shg_Qy,
-                splines=st.session_state.shg_splines,
-                image_size=CANVAS_SIZE,
-                grid_size=st.session_state.shg_grid_size,   # add this
-                show_density=st.session_state.preview_density,
-                show_quiver=st.session_state.preview_directions,
-                show_splines=st.session_state.preview_splines,
-            )
-            fig.tight_layout(pad=0)
-            st.pyplot(fig, use_container_width=True)
-            plt.close(fig)
+            with paths_tab:
+                _ss("preview_density", False)
+                _ss("preview_directions", False)
+                _ss("preview_splines", True)
+                fig, ax = plt.subplots(figsize=(5,5), facecolor="#0d1117")
+                ax.set_facecolor("#0d1117")
+                plot_fields(
+                    ax=ax, D=st.session_state.shg_D,
+                    Qx=st.session_state.shg_Qx, Qy=st.session_state.shg_Qy,
+                    splines=st.session_state.shg_splines,
+                    image_size=CANVAS_SIZE,
+                    grid_size=st.session_state.shg_grid_size,   # add this
+                    show_density=st.session_state.preview_density,
+                    show_quiver=st.session_state.preview_directions,
+                    show_splines=st.session_state.preview_splines,
+                )
+                fig.tight_layout(pad=0)
+                st.pyplot(fig, use_container_width=True)
+                plt.close(fig)
 
-            st.caption("Colors distinguish paths; they do not represent a measured property.")
-            # Visibility checkboxes
-            cb1, cb2, cb3 = st.columns(3)
-            with cb1: st.checkbox("Density", key="preview_density")
-            with cb2: st.checkbox("Directions", key="preview_directions")
-            with cb3: st.checkbox("Fiber paths", key="preview_splines")
+                st.caption("Colors distinguish paths; they do not represent a measured property.")
+                # Visibility checkboxes
+                cb1, cb2, cb3 = st.columns(3)
+                with cb1: st.checkbox("Density", key="preview_density")
+                with cb2: st.checkbox("Directions", key="preview_directions")
+                with cb3: st.checkbox("Fiber paths", key="preview_splines")
 
 
-            # Download orientation field PNG
-            c3, c4 = st.columns(2, gap="small")
-            with c3:
-                fig2, ax2 = plt.subplots(figsize=(5,5), facecolor="#0d1117")
-                ax2.set_facecolor("#0d1117")
-                plot_fields(ax=ax2, D=st.session_state.shg_D,
-                            Qx=st.session_state.shg_Qx, Qy=st.session_state.shg_Qy,
-                            splines=st.session_state.shg_splines, image_size=CANVAS_SIZE,
-                            grid_size=st.session_state.shg_grid_size,   # add this
-                            show_density=st.session_state.preview_density,
-                            show_quiver=st.session_state.preview_directions,
-                            show_splines=st.session_state.preview_splines)
-                fig2.tight_layout(pad=0)
-                buf2 = io.BytesIO(); fig2.savefig(buf2,format="png",bbox_inches="tight",pad_inches=0,facecolor="#0d1117")
-                plt.close(fig2); buf2.seek(0)
-                st.download_button("↓ Preview PNG", data=buf2.getvalue(),
-                    file_name="fiber_paths.png", mime="image/png", use_container_width=True)
-            with c4:
-                # Download vector field as numpy
-                vf_export = {
-                    "Qx": st.session_state.shg_Qx.tolist(),
-                    "Qy": st.session_state.shg_Qy.tolist(),
-                    "shape": list(st.session_state.shg_Qx.shape),
-                }
-                st.download_button("↓ Vector JSON", data=json.dumps(vf_export),
-                    file_name="vector_field.json", mime="application/json", use_container_width=True)
-    else:
-        st.markdown("""
-        <div class="output-empty">Select Render image to generate an SHG image.<br>
-          An empty density map uses uniform density.
-        </div>""", unsafe_allow_html=True)
+                # Download orientation field PNG
+                c3, c4 = st.columns(2, gap="small")
+                with c3:
+                    fig2, ax2 = plt.subplots(figsize=(5,5), facecolor="#0d1117")
+                    ax2.set_facecolor("#0d1117")
+                    plot_fields(ax=ax2, D=st.session_state.shg_D,
+                                Qx=st.session_state.shg_Qx, Qy=st.session_state.shg_Qy,
+                                splines=st.session_state.shg_splines, image_size=CANVAS_SIZE,
+                                grid_size=st.session_state.shg_grid_size,   # add this
+                                show_density=st.session_state.preview_density,
+                                show_quiver=st.session_state.preview_directions,
+                                show_splines=st.session_state.preview_splines)
+                    fig2.tight_layout(pad=0)
+                    buf2 = io.BytesIO(); fig2.savefig(buf2,format="png",bbox_inches="tight",pad_inches=0,facecolor="#0d1117")
+                    plt.close(fig2); buf2.seek(0)
+                    st.download_button("↓ Preview PNG", data=buf2.getvalue(),
+                        file_name="fiber_paths.png", mime="image/png", use_container_width=True)
+                with c4:
+                    # Download vector field as numpy
+                    vf_export = {
+                        "Qx": st.session_state.shg_Qx.tolist(),
+                        "Qy": st.session_state.shg_Qy.tolist(),
+                        "shape": list(st.session_state.shg_Qx.shape),
+                    }
+                    st.download_button("↓ Vector JSON", data=json.dumps(vf_export),
+                        file_name="vector_field.json", mime="application/json", use_container_width=True)
+        else:
+            st.markdown("""
+            <div class="output-empty">Select Render image to generate an SHG image.<br>
+              An empty density map uses uniform density.
+            </div>""", unsafe_allow_html=True)
         
 st.markdown("""
 <div style="margin-top:32px;padding-top:12px;border-top:1px solid var(--shg-border);
      display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <span style="color:var(--shg-muted);font-size:18px">
+    <span style="color:var(--shg-muted);font-size:20px">
     © Bhaskar Lab · Computational Biology &amp; Machine Learning · University of Wisconsin–Madison
   </span>
-  <span style="color:#cc1543;font-size:18px;font-weight:600">CBML</span>
+  <span style="color:#cc1543;font-size:20px;font-weight:600">CBML</span>
 </div>
 """, unsafe_allow_html=True)
