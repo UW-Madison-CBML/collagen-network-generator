@@ -60,6 +60,23 @@ summary { cursor:pointer; font-size:20px; padding:6px 0; }
 
 .hint { color:var(--shg-muted, #64748b); font-size:20px; }
 .wcount { color:var(--shg-muted, #64748b); font-size:20px; }
+
+.editor-controls { display:flex; flex-direction:column; gap:14px; padding:16px 0 0; }
+.toolbar { gap:10px; padding:0; }
+.toolbar .btn { min-height:44px; font-weight:500; }
+.toolbar > .btn:not(.danger) { flex:1; }
+.sl-row { display:grid; grid-template-columns:auto minmax(60px,1fr) 36px; gap:10px; flex:1 1 220px; padding:8px 0; }
+.sl-row input[type=range] { width:100%; }
+.toolbar .danger { font-size:18px; padding:6px 10px; }
+.hint { line-height:1.5; color:var(--shg-text); }
+.field-summary { border-top:1px solid var(--shg-border); padding-top:14px; display:flex; flex-direction:column; gap:10px; font-size:18px; line-height:1.5; }
+.legend { display:flex; flex-wrap:wrap; gap:12px 24px; }
+.legend span { display:inline-flex; align-items:center; gap:8px; }
+.legend i { display:inline-block; width:48px; height:7px; border-radius:4px; }
+#fieldStatus { color:var(--shg-muted); }
+#mapFiles { margin-top:4px; }
+.save-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.save-btn { white-space:normal; min-height:44px; font-weight:500; }
 </style>
 </head>
 <body>
@@ -71,9 +88,16 @@ summary { cursor:pointer; font-size:20px; padding:6px 0; }
     <canvas id="cvOver"></canvas>
     <div id="cursor-ring"></div>
   </div>
+  <div class="editor-controls">
   <div class="toolbar" id="tb"></div>
   <div class="well-panel" id="wellPanel"></div>
   <div class="hint" id="hint"></div>
+  <div class="field-summary">
+    <div class="legend"><span><i style="background:linear-gradient(to right,#440154,#21908d,#fde725)"></i>Density: low to high</span>
+    <span><i style="background:#a78bfa;width:20px"></i>Painted direction</span></div>
+    <div id="fieldStatus"></div>
+  </div>
+  </div>
   <details id="mapFiles"><summary>Save, load and export maps</summary>
     <div class="save-row" id="saveRow"></div>
   </details>
@@ -354,7 +378,7 @@ function buildToolbar(){
       mkBtn("− Erase",  ()=>setTool("erase"), tool==="erase"?"on-erase":""),
       mkBtn("→ Direction", ()=>setTool("vec"),   tool==="vec"  ?"on-vec":  ""),
       mkSep(),
-      mkSlider("Brush", brushSz, 4, 120, null,     v=>{brushSz=v;}),
+      mkSlider("Brush size", brushSz, 4, 120, null,     v=>{brushSz=v;}),
       mkSlider("Strength",   brushStr,1, 100, tool==="vec"?"purple":null, v=>{brushStr=v;}),
       mkSep(),
       mkBtn("Clear density",()=>{ densityF32.fill(0); render(); emitDensity(); },"danger"),
@@ -368,7 +392,7 @@ function buildToolbar(){
       mkBtn("↖ Move",   ()=>setTool("move"),  tool==="move" ?"on-move" :""),
       mkBtn("✕ Delete", ()=>setTool("del"),   tool==="del"  ?"on-del"  :""),
       cnt,
-      mkBtn("Clear all",()=>{ wells=[];selWell=-1;wellsOwned=true;updateWellPanel();render();emitWells();buildToolbar(); },"danger")
+      mkBtn("Clear guides",()=>{ wells=[];selWell=-1;wellsOwned=true;updateWellPanel();render();emitWells();buildToolbar(); },"danger")
     );
   }
 }
@@ -433,6 +457,10 @@ let imgData=null;
 
 function render(){
   if(!mainCtx||!densityF32) return;
+  const paintedDensity=densityF32.some(v=>v>0.001);
+  const paintedDirection=vecMagF32.some(v=>v>0.001);
+  document.getElementById("fieldStatus").textContent=
+    `Density: ${paintedDensity?"painted":"uniform"} · Direction: ${paintedDirection?"painted":"generated"} · Guides: ${wells.length}`;
   // Density → viridis, no normalization : brightness reflects absolute painted values
   if(!imgData||imgData.width!==N) imgData=new ImageData(N,N);
   const d=imgData.data;

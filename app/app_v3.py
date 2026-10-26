@@ -482,28 +482,9 @@ with col_left:
             if result.get("vec_mag_b64"):  st.session_state.vec_mag_arr = from_b64(result["vec_mag_b64"], sz)
             if result.get("wells") is not None: st.session_state.wells = result["wells"]
 
-    # Legend
-    st.markdown("""
-    <div style="display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:6px">
-        <div style="width:72px;height:6px;border-radius:3px;background:linear-gradient(to right,#440154,#3b528b,#21908d,#5dc963,#fde725)"></div>
-        <span style="color:var(--shg-muted);font-size:20px">density</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <div style="width:18px;height:6px;border-radius:3px;background:#a78bfa"></div>
-        <span style="color:var(--shg-muted);font-size:20px">painted orientation</span>
-      </div>
-    </div>""", unsafe_allow_html=True)
-
-    # Describe the fields that will be used for rendering.
     has_d = float(st.session_state.density_arr.max()) > 1e-3
     has_v = float(st.session_state.vec_mag_arr.max()) > 1e-3
     n_wells = len(st.session_state.wells)
-    st.caption(
-        f"Density: {'painted' if has_d else 'uniform'}. "
-        f"Direction: {'painted' if has_v else 'generated from parameters'}. "
-        f"Guides: {n_wells}."
-    )
 
 # ── Presets ─────────────────────────────────────────────────────────────────────
 # Mapped from legacy synthetic_class_params. Fields not present in current UI
