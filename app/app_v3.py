@@ -1,5 +1,5 @@
 """
-SHG Fiber Simulator — app.py
+SHG Fiber Simulator : app.py
 Custom canvas component with density painting, vector field painting, and well placement.
 """
 import base64, io, json, os
@@ -158,17 +158,17 @@ st.markdown(f"""
   --shg-muted: color-mix(in srgb, var(--text-color, #222222) 80%, var(--background-color, #ffffff));
   --shg-border: color-mix(in srgb, var(--text-color, #222222) 24%, var(--background-color, #ffffff));
 }}
-[data-testid="stMainBlockContainer"] {{ padding: 4.5rem 2.5rem 2rem; max-width: 1560px; }}
+[data-testid="stMainBlockContainer"] {{ padding: 4.5rem 2.5rem 2rem; max-width: 1900px; }}
 .research-header {{ display:flex; align-items:center; justify-content:space-between;
   gap:24px; flex-wrap:wrap; border-bottom:3px solid #c5050c; padding-bottom:20px; margin-bottom:20px; }}
-.research-header h1 {{ font-size:30px; font-weight:600; padding:0; margin:0; line-height:1.25; }}
-.research-header p {{ margin:6px 0 0; font-size:16px; color:var(--shg-muted); }}
+.research-header h1 {{ font-size:36px; font-weight:600; padding:0; margin:0; line-height:1.25; }}
+.research-header p {{ margin:6px 0 0; font-size:20px; color:var(--shg-muted); }}
 .research-header img {{ width:190px; height:auto; }}
-[data-testid="stHeadingWithActionElements"] h3 {{ font-size:23px; padding-top:0; }}
-[data-testid="stCaptionContainer"] p {{ font-size:16px; line-height:1.5; color:var(--shg-muted); }}
+[data-testid="stHeadingWithActionElements"] h3 {{ font-size:28px; padding-top:0; }}
+[data-testid="stCaptionContainer"] p {{ font-size:20px; line-height:1.5; color:var(--shg-muted); }}
 [data-testid="stWidgetLabel"] p, [data-testid="stButton"] button p,
 [data-testid="stDownloadButton"] button p, [data-testid="stNumberInput"] input,
-[data-testid="stExpander"] summary p, [data-testid="stTabs"] button p {{ font-size:17px; line-height:1.45; }}
+[data-testid="stExpander"] summary p, [data-testid="stTabs"] button p {{ font-size:21px; line-height:1.45; }}
 [data-testid="stButton"] button, [data-testid="stDownloadButton"] button {{
   min-height:44px; padding:8px 14px; border-radius:4px;
 }}
@@ -177,14 +177,17 @@ button[kind="primary"]:hover {{ background:#9b0000!important; color:#fff!importa
 button:focus-visible, input:focus-visible, summary:focus-visible {{ outline:3px solid #c5050c; outline-offset:3px; }}
 button[aria-label^="Help for"] {{ color:#c5050c; min-width:28px; min-height:28px; }}
 button[aria-label^="Help for"] svg {{ width:22px; height:22px; }}
-[role="tooltip"] {{ font-size:16px; line-height:1.5; }}
+[data-baseweb="select"], [data-baseweb="select"] input, [role="option"] {{ font-size:20px!important; }}
+[data-testid="stTabs"] [role="tablist"] {{ order:2; }}
+[data-testid="stTabs"] [role="tabpanel"] {{ order:1; padding-top:0; }}
+[role="tooltip"] {{ font-size:20px; line-height:1.5; }}
 [data-testid="stSliderTickBarMin"], [data-testid="stSliderTickBarMax"],
-[data-testid="stSliderThumbValue"] {{ font-size:15px; }}
+[data-testid="stSliderThumbValue"] {{ font-size:18px; }}
 [data-testid="stExpander"] {{ border-radius:4px; }}
 [data-testid="stExpander"] summary {{ min-height:48px; }}
 .output-empty {{ aspect-ratio:1; display:flex; align-items:center; justify-content:center;
   border:1px solid var(--shg-border); background:var(--shg-surface); padding:32px;
-  font-size:17px; line-height:1.6; text-align:center; color:var(--shg-muted); }}
+  font-size:21px; line-height:1.6; text-align:center; color:var(--shg-muted); }}
 @media (max-width:900px) {{
   [data-testid="stMainBlockContainer"] {{ padding:4.5rem 1rem 2rem; }}
   .research-header h1 {{ font-size:26px; }}
@@ -255,7 +258,7 @@ def blend_orientation(Qx_g, Qy_g, vec_qx, vec_qy, vec_mag):
     Qx = np.where(has_paint, (1.0 - mag2d) * Qx_g + mag2d * qx_p, Qx_g)
     Qy = np.where(has_paint, (1.0 - mag2d) * Qy_g + mag2d * qy_p, Qy_g)
 
-    # Renormalize — a linear blend of unit vectors is not itself a unit vector
+    # Renormalize : a linear blend of unit vectors is not itself a unit vector
     norm = np.sqrt(Qx**2 + Qy**2)
     norm = np.where(norm < 1e-8, 1.0, norm)
     return Qx / norm, Qy / norm
@@ -313,7 +316,7 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size, grid_size=None,
 # st.markdown("""
 # <div style="display:flex;align-items:center;gap:10px;padding:4px 0 10px">
 #   <div style="width:9px;height:9px;border-radius:50%;background:#cc1543;box-shadow:0 0 12px #cc154388;flex-shrink:0"></div>
-#   <span style="font-size:15px;font-weight:700;letter-spacing:-0.02em">SHG Fiber Simulator</span>
+#   <span style="font-size:18px;font-weight:700;letter-spacing:-0.02em">SHG Fiber Simulator</span>
 #   <span style="color:#475569;font-size:12px">Interactive Field Editor</span>
 # </div><hr>""", unsafe_allow_html=True)
 
@@ -339,7 +342,7 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size, grid_size=None,
 # </div>
 # """, unsafe_allow_html=True)
 
-# Toggle button — sits in top-right via Streamlit columns trick
+# Toggle button : sits in top-right via Streamlit columns trick
 # _, toggle_col = st.columns([0.85, 0.15])
 # with toggle_col:
 #     label = "☀️ Light" if st.session_state.dark_mode else "🌙 Dark"
@@ -348,16 +351,14 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size, grid_size=None,
 #         st.rerun()
 
 # ── Layout ─────────────────────────────────────────────────────────────────────
-settings_area = st.container()
-st.divider()
-col_left, col_mid = st.columns(2, gap="large")
+col_left, col_mid, settings_area = st.columns([1.35, 1.35, 1], gap="medium")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# LEFT — Canvas
+# LEFT : Canvas
 # ══════════════════════════════════════════════════════════════════════════════
 with col_left:
     st.subheader("Field editor")
-    st.caption("Paint fiber density and direction, or add guides to shape the network.")
+    st.caption("Edit density and fiber direction.")
     tc1, tc2 = st.columns(2, gap="small")
     with tc1:
         if st.button("Paint fields", use_container_width=True,
@@ -370,7 +371,6 @@ with col_left:
             if st.session_state.active_tab != "wells":
                 st.session_state.active_tab = "wells"; st.rerun()
 
-    st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
     result = shg_canvas(
         mode        = st.session_state.active_tab,
@@ -396,7 +396,7 @@ with col_left:
         elif rt == "wells":
             st.session_state.wells = result.get("wells", [])
         elif rt == "sync":
-            # Sent after loading a file in the JS — sync all state to Python
+            # Sent after loading a file in the JS : sync all state to Python
             if result.get("density_b64"):  st.session_state.density_arr = from_b64(result["density_b64"], sz)
             if result.get("vec_qx_b64"):   st.session_state.vec_qx_arr  = from_b64(result["vec_qx_b64"],  sz)
             if result.get("vec_qy_b64"):   st.session_state.vec_qy_arr  = from_b64(result["vec_qy_b64"],  sz)
@@ -408,11 +408,11 @@ with col_left:
     <div style="display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:6px">
         <div style="width:72px;height:6px;border-radius:3px;background:linear-gradient(to right,#440154,#3b528b,#21908d,#5dc963,#fde725)"></div>
-        <span style="color:var(--shg-muted);font-size:14px">density</span>
+        <span style="color:var(--shg-muted);font-size:18px">density</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         <div style="width:18px;height:6px;border-radius:3px;background:#a78bfa"></div>
-        <span style="color:var(--shg-muted);font-size:14px">painted orientation</span>
+        <span style="color:var(--shg-muted);font-size:18px">painted orientation</span>
       </div>
     </div>""", unsafe_allow_html=True)
 
@@ -421,7 +421,7 @@ with col_left:
     has_v   = float(st.session_state.vec_mag_arr.max()) > 1e-3
     n_wells = len(st.session_state.wells)
     st.markdown(f"""
-    <div style="background:var(--shg-surface);border:1px solid var(--shg-border);border-radius:8px;padding:9px 12px;font-size:15px;margin-top:8px">
+    <div style="background:var(--shg-surface);border:1px solid var(--shg-border);border-radius:8px;padding:9px 12px;font-size:18px;margin-top:8px">
       <div style="display:flex;gap:16px;flex-wrap:wrap">
         <span style="color:var(--shg-muted)">Density: <span style="color:{'#4ade80' if has_d else '#f87171'}">{'painted' if has_d else 'empty'}</span></span>
         <span style="color:var(--shg-muted)">Vectors: <span style="color:{'#a78bfa' if has_v else '#64748b'}">{'painted' if has_v else 'empty'}</span></span>
@@ -524,7 +524,7 @@ PRESETS = {
     # "ORANGE": {
     #     "label": "ORANGE",
     #     "color": "#fb923c",
-    #     "desc":  "Balanced — test configuration",
+    #     "desc":  "Balanced : test configuration",
     #     "params": {
     #         "G_align":       0.5,
     #         "L_align":       0.5,
@@ -545,7 +545,7 @@ def apply_preset(key):
         st.session_state[k] = v
 
 # ══════════════════════════════════════════════════════════════════════════════
-# RIGHT — Parameters
+# RIGHT : Parameters
 # ══════════════════════════════════════════════════════════════════════════════
 def apply_selected_preset():
     key = st.session_state.get("preset_choice")
@@ -554,22 +554,16 @@ def apply_selected_preset():
 
 with settings_area:
     st.subheader("Parameters")
-    preset_help = "Presets change fiber parameters and keep your painted fields and guides.\n\n" + "\n\n".join(
-        f"**{v['label']}** — {v['desc']}" for v in PRESETS.values()
-    )
-    preset_column, apply_column = st.columns([3, 1], vertical_alignment="bottom")
-    with preset_column:
-        choice = st.selectbox("Preset", [None, *PRESETS],
-            format_func=lambda k: "Custom parameters" if k is None else PRESETS[k]["label"],
-            key="preset_choice", help=preset_help)
-    with apply_column:
-        st.button("Apply preset", on_click=apply_selected_preset,
-                  disabled=choice is None, use_container_width=True)
-    if choice:
-        st.caption(PRESETS[choice]["desc"] + " Select Apply preset to load these values.")
+    selected = st.session_state.get("preset_choice")
+    preset_help = (PRESETS[selected]["desc"] if selected else
+        "Choose a preset, then select Apply preset. Painted fields and fiber guides are kept.")
+    choice = st.selectbox("Preset", [None, *PRESETS],
+        format_func=lambda k: "Custom parameters" if k is None else PRESETS[k]["label"],
+        key="preset_choice", help=preset_help)
+    st.button("Apply preset", on_click=apply_selected_preset,
+              disabled=choice is None, use_container_width=True)
 
-    fiber_settings, alignment_settings, texture_settings = st.columns(3, gap="medium")
-    with fiber_settings, st.expander("Fiber", expanded=False):
+    with st.expander("Fiber", expanded=False):
         st.slider("Fiber count", 20, 3000, step=10, key="num_fibers",
             help="Number of fibers to generate. More fibers usually make the image denser and take longer to render. Their starting positions follow the density map.")
         st.slider("Fiber length", 20, 400, step=5, key="spline_length",
@@ -577,7 +571,7 @@ with settings_area:
         st.slider("Fiber thickness", 0.5, 10.0, step=0.5, key="thickness",
             help="Width used when drawing fibers into the SHG image. Higher values make brighter bands appear thicker without changing the underlying fiber paths.")
 
-    with alignment_settings, st.expander("Alignment", expanded=False):
+    with st.expander("Alignment", expanded=False):
         st.slider("Overall alignment", 0.0, 1.0, step=0.01, key="G_align",
             help="Controls variation in the generated direction field. Lower values produce more varied directions; higher values make directions more consistent. Painted directions can override the generated field locally.")
         st.slider("Follow direction field", 0.0, 1.0, step=0.01, key="L_align",
@@ -585,35 +579,32 @@ with settings_area:
         st.slider("Broad curvature", 0.0, 1.0, step=0.01, key="G_curve",
             help="Bends the generated direction field across the whole image. Lower values favor a straighter field; higher values introduce larger curved patterns. Separate from small waves along a fiber.")
 
-    with texture_settings, st.expander("Texture", expanded=False):
+    with st.expander("Texture", expanded=False):
         st.slider("Fiber waviness", 0.0, 1.0, step=0.01, key="L_curve",
             help="Controls local bending, sinusoidal offsets and spline smoothing. Increasing this adds more small-scale waviness; it does not set a wavelength in physical units.")
         st.slider("Wave variation", 0.0, 1.0, step=0.01, key="L_wave_freq",
             help="Controls the spatial field used to vary the waves along fibers. It changes the distribution and clustering of the wavelength factor, rather than specifying one wavelength for every fiber.")
 
-    with st.expander("Advanced: depth, focus and random seed", expanded=False):
+    with st.expander("Depth and focus", expanded=False):
         st.caption("A layered projection with depth-dependent blur.")
-        depth_columns = st.columns(3, gap="medium")
-        with depth_columns[0]:
-            st.slider("Fiber layers", 1, 20, step=1, key="n_layers",
-                help="Splits the existing fibers into this many planes. It does not multiply the fiber count. Each plane is blurred according to its distance from the focal plane.")
-        with depth_columns[1]:
-            st.slider("Depth range", 0.5, 50.0, step=0.1, key="depth",
-                help="Model depth range used to space the layers and calculate defocus blur. Higher values increase separation and blur away from focus. These are model units, not calibrated micrometers.")
-        with depth_columns[2]:
-            st.slider("Focus position", 0.0, 1.0, step=0.1, key="focal_plane",
-                help="Position within the depth range: 0 is the front and 1 is the back. With one layer, the layer is at the front; moving focus away from 0 adds blur.")
+        st.slider("Fiber layers", 1, 20, step=1, key="n_layers",
+            help="Splits the existing fibers into this many planes. It does not multiply the fiber count. Each plane is blurred according to its distance from the focal plane.")
+        st.slider("Depth range", 0.5, 50.0, step=0.1, key="depth",
+            help="Model depth range used to space the layers and calculate defocus blur. Higher values increase separation and blur away from focus. These are model units, not calibrated micrometers.")
+        st.slider("Focus position", 0.0, 1.0, step=0.1, key="focal_plane",
+            help="Position within the depth range: 0 is the front and 1 is the back. With one layer, the layer is at the front; moving focus away from 0 adds blur.")
 
+    with st.expander("Random seed", expanded=False):
         st.number_input("Random seed", step=1, key="seed",
             help="Repeat a seed with the same fields, guides and parameters to reproduce the same generated network. Change it to generate another realization.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MIDDLE — Render & Output
+# MIDDLE : Render & Output
 # ══════════════════════════════════════════════════════════════════════════════
 with col_mid:
     st.subheader("Output")
-    st.caption("Render the SHG image, then inspect the individual fiber paths.")
+    st.caption("View the image and fiber paths.")
     render_btn = st.button("Render image", type="primary", use_container_width=True)
 
     if render_btn:
@@ -791,13 +782,9 @@ with col_mid:
                 st.json(st.session_state.active_params)
 
         with paths_tab:
-            st.caption("Colors distinguish paths; they do not represent a measured property.")
-            # Visibility checkboxes
-            cb1, cb2, cb3 = st.columns(3)
-            with cb1: st.checkbox("Density", value=False, key="preview_density")
-            with cb2: st.checkbox("Directions", value=False, key="preview_directions")
-            with cb3: st.checkbox("Fiber paths", value=True, key="preview_splines")
-
+            _ss("preview_density", False)
+            _ss("preview_directions", False)
+            _ss("preview_splines", True)
             fig, ax = plt.subplots(figsize=(5,5), facecolor="#0d1117")
             ax.set_facecolor("#0d1117")
             plot_fields(
@@ -813,6 +800,14 @@ with col_mid:
             fig.tight_layout(pad=0)
             st.pyplot(fig, use_container_width=True)
             plt.close(fig)
+
+            st.caption("Colors distinguish paths; they do not represent a measured property.")
+            # Visibility checkboxes
+            cb1, cb2, cb3 = st.columns(3)
+            with cb1: st.checkbox("Density", key="preview_density")
+            with cb2: st.checkbox("Directions", key="preview_directions")
+            with cb3: st.checkbox("Fiber paths", key="preview_splines")
+
 
             # Download orientation field PNG
             c3, c4 = st.columns(2, gap="small")
@@ -849,9 +844,9 @@ with col_mid:
 st.markdown("""
 <div style="margin-top:32px;padding-top:12px;border-top:1px solid var(--shg-border);
      display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <span style="color:var(--shg-muted);font-size:14px">
+    <span style="color:var(--shg-muted);font-size:18px">
     © Bhaskar Lab · Computational Biology &amp; Machine Learning · University of Wisconsin–Madison
   </span>
-  <span style="color:#cc1543;font-size:14px;font-weight:600">CBML</span>
+  <span style="color:#cc1543;font-size:18px;font-weight:600">CBML</span>
 </div>
 """, unsafe_allow_html=True)
