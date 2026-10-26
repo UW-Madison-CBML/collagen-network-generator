@@ -164,7 +164,8 @@ st.markdown(f"""
 .research-header h1 {{ font-size:36px; font-weight:600; padding:0; margin:0; line-height:1.25; }}
 .research-header p {{ margin:6px 0 0; font-size:20px; color:var(--shg-muted); }}
 .research-header img {{ width:190px; height:auto; }}
-[data-testid="stHeadingWithActionElements"] h3 {{ font-size:28px; padding-top:0; }}
+[data-testid="stHeadingWithActionElements"] h3 {{ font-size:28px; font-weight:650; padding-top:0; }}
+[data-testid="stExpander"] summary p {{ font-size:22px!important; font-weight:600; }}
 [data-testid="stCaptionContainer"] p {{ font-size:20px; line-height:1.5; color:var(--shg-muted); }}
 [data-testid="stWidgetLabel"] p, [data-testid="stButton"] button p,
 [data-testid="stDownloadButton"] button p, [data-testid="stNumberInput"] input,
@@ -198,6 +199,76 @@ button[aria-label^="Help for"] svg {{ width:22px; height:22px; }}
   <div><h1>SHG Fiber Simulator</h1><p>Bhaskar Lab · Computational Biology &amp; Machine Learning</p></div>
   <img src="data:image/png;base64,{LOGO_B64_horizontal}" alt="University of Wisconsin–Madison">
 </header>
+""", unsafe_allow_html=True)
+
+# Readable native inputs and contextual help.
+st.markdown("""
+<style>
+[data-testid="stSelectbox"] input, [data-testid="stSelectbox"] div,
+[data-testid="stSelectbox"] span, [role="combobox"], [role="option"] * {
+  font-size:22px!important; line-height:1.4!important;
+}
+[data-testid="stTooltipContent"] *, [data-baseweb="tooltip"] *, [role="tooltip"] * {
+  font-size:22px!important; line-height:1.5!important;
+}
+.preset-description { font-size:21px; line-height:1.5; color:var(--shg-text); margin:0 0 12px; }
+</style>
+""", unsafe_allow_html=True)
+
+from contextlib import contextmanager
+from html import escape
+
+@contextmanager
+def parameter_group(label, description):
+    with st.expander(label, expanded=False):
+        st.caption(description)
+        yield
+
+def help_icon(label, description):
+    return f'''<span class="parameter-help">
+      <span class="help-circle" tabindex="0" aria-label="Help for {escape(label)}">?</span>
+      <span class="parameter-help-card" role="tooltip">{escape(description)}</span>
+    </span>'''
+
+def preset_description(label, description):
+    st.markdown(f'<div class="preset-help-row">{help_icon(label, description)}</div>', unsafe_allow_html=True)
+
+def parameter_label(label, description):
+    st.markdown(f'<div class="parameter-label"><span>{escape(label)}</span>{help_icon(label, description)}</div>', unsafe_allow_html=True)
+
+def parameter_slider(label, *args, help, **kwargs):
+    parameter_label(label, help)
+    return st.slider(label, *args, label_visibility="collapsed", **kwargs)
+
+def parameter_number(label, *args, help, **kwargs):
+    parameter_label(label, help)
+    return st.number_input(label, *args, label_visibility="collapsed", **kwargs)
+
+st.markdown("""
+<style>
+.parameter-label { display:flex; align-items:center; justify-content:space-between;
+  gap:16px; font-size:21px; font-weight:500; line-height:1.45; margin-top:4px; }
+.parameter-help { display:inline-flex; position:relative; flex:0 0 22px; }
+.help-circle { box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; border:2px solid #737780; border-radius:50%;
+  font:600 15px/1 sans-serif; color:#737780; cursor:help; }
+.preset-help-row { display:flex; justify-content:center; padding-top:9px; }
+.parameter-help-card { display:none; position:absolute; right:0; top:100%; z-index:1000;
+  width:min(360px,75vw); padding:16px; border:1px solid var(--shg-border);
+  border-radius:6px; background:var(--background-color,white); color:var(--shg-text);
+  font-size:21px; font-weight:400; line-height:1.5; box-shadow:0 3px 10px #0002; }
+.parameter-help:hover .parameter-help-card,
+.help-circle:focus-visible + .parameter-help-card { display:block; }
+.help-circle:focus-visible { outline:3px solid #c5050c; outline-offset:3px; }
+[data-testid="stSlider"] { padding-top:14px; padding-bottom:4px; }
+[data-testid="stSliderThumbValue"] { font-size:20px!important; line-height:1.3; }
+[data-testid="stNumberInput"] { margin-top:4px; margin-bottom:6px; }
+[data-testid="stMarkdownContainer"] .preset-status { height:48px; min-height:48px; min-width:0; box-sizing:border-box;
+  padding:8px 14px; border-left:4px solid #c5050c; display:flex; flex-wrap:nowrap;
+  align-items:center; gap:10px; overflow:hidden; background:var(--shg-surface); cursor:default; }
+.preset-status .status-label { flex:0 0 auto; white-space:nowrap; font-size:20px!important; font-weight:500; color:var(--shg-muted); }
+.preset-status .status-value { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:24px!important; font-weight:600; line-height:1.4; color:var(--shg-text); }
+</style>
 """, unsafe_allow_html=True)
 
 # ── Component ──────────────────────────────────────────────────────────────────
@@ -351,25 +422,33 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size, grid_size=None,
 #         st.rerun()
 
 # ── Layout ─────────────────────────────────────────────────────────────────────
-col_left, col_mid, settings_area = st.columns([1.35, 1.35, 1], gap="medium")
+header_columns = st.columns([1.3, 1.3, 1], gap="medium")
+for column, title, description in zip(header_columns,
+        ("Field editor", "Output", "Parameters"),
+        ("Edit density and fiber direction.", "View the image and fiber paths.",
+         "Adjust settings, then select Render image.")):
+    with column:
+        st.subheader(title)
+        st.caption(description)
+editor_actions, output_actions, parameter_actions = st.columns([1.3, 1.3, 1], gap="medium")
+col_left, col_mid, settings_area = st.columns([1.3, 1.3, 1], gap="medium")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # LEFT : Canvas
 # ══════════════════════════════════════════════════════════════════════════════
 with col_left:
-    st.subheader("Field editor")
-    st.caption("Edit density and fiber direction.")
-    tc1, tc2 = st.columns(2, gap="small")
-    with tc1:
-        if st.button("Paint fields", use_container_width=True,
-                     type="primary" if st.session_state.active_tab=="density" else "secondary"):
-            if st.session_state.active_tab != "density":
-                st.session_state.active_tab = "density"; st.rerun()
-    with tc2:
-        if st.button("Fiber guides", use_container_width=True,
-                     type="primary" if st.session_state.active_tab=="wells" else "secondary"):
-            if st.session_state.active_tab != "wells":
-                st.session_state.active_tab = "wells"; st.rerun()
+    with editor_actions:
+        tc1, tc2 = st.columns(2, gap="small")
+        with tc1:
+            if st.button("Paint fields", use_container_width=True,
+                         type="primary" if st.session_state.active_tab=="density" else "secondary"):
+                if st.session_state.active_tab != "density":
+                    st.session_state.active_tab = "density"; st.rerun()
+        with tc2:
+            if st.button("Fiber guides", use_container_width=True,
+                         type="primary" if st.session_state.active_tab=="wells" else "secondary"):
+                if st.session_state.active_tab != "wells":
+                    st.session_state.active_tab = "wells"; st.rerun()
 
 
     result = shg_canvas(
@@ -439,7 +518,7 @@ PRESETS = {
     "RED": {
         "label": "Aligned short fibers",
         "color": "#f87171",
-        "desc":  "1,200 short fibers with strong overall alignment and moderate broad curvature. Uses your current painted fields.",
+        "desc":  "1,200 short fibers with strong overall alignment and moderate broad curvature.",
         "params": {
             "G_align":       0.7,
             "L_align":       0.6,
@@ -456,7 +535,7 @@ PRESETS = {
 
         "label": "Loosely aligned fibers",
         "color": "#fbbf24",
-        "desc":  "1,200 short fibers with weaker alignment and little added waviness. Uses your current painted fields.",
+        "desc":  "1,200 short fibers with weaker alignment and little added waviness.",
         "params": {
             "G_align":       0.4,
             "L_align":       0.3,
@@ -472,7 +551,7 @@ PRESETS = {
     "YELLOW_GOOD": {# syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=0.7, G_conn=1, L_align=1, L_density=0.6, L_conn=0.3, L_curve=0, spline_length=70, spline_num=1200)
         "label": "Curved, field-following fibers",
         "color": "#fde68a",
-        "desc":  "800 fibers with broad curvature and strong following of the underlying direction field. Uses your current painted fields.",
+        "desc":  "800 fibers with broad curvature and strong following of the underlying direction field.",
         "params": {
             "G_align":       0.2,
             "L_align":       1.0,
@@ -488,7 +567,7 @@ PRESETS = {
     "INTERESTING": { # syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=1, G_conn=1, L_align=0.6, L_density=0.55, L_conn=1, L_curve=0, spline_length=40, spline_num=3000)
         "label": "Dense curved network",
         "color": "#a78bfa",
-        "desc":  "3,000 short fibers with strong broad curvature and weak overall alignment. Uses your current painted fields.",
+        "desc":  "3,000 short fibers with strong broad curvature and weak overall alignment.",
         "params": {
             "G_align":       0.2,
             "L_align":       0.6,
@@ -505,7 +584,7 @@ PRESETS = {
 
         "label": "Aligned wavy fibers",
         "color": "#22d3ee",
-        "desc":  "1,200 short fibers with strong overall alignment and more local waviness. Uses your current painted fields.",
+        "desc":  "1,200 short fibers with strong overall alignment and more local waviness.",
         "params": {
             "G_align":       0.95,
             "L_align":       0.6,
@@ -536,62 +615,70 @@ PRESETS = {
     # },
 }
 
+PARAMETER_KEYS = ("num_fibers", "spline_length", "thickness", "G_align", "L_align",
+                  "G_curve", "L_curve", "L_wave_freq", "n_layers", "depth", "focal_plane", "seed")
+
 def apply_preset(key):
     p = PRESETS[key]["params"]
     for k, v in p.items():
         st.session_state[k] = v
+    st.session_state.applied_preset = key
+    st.session_state.preset_snapshot = {k: st.session_state[k] for k in PARAMETER_KEYS}
 
 # ══════════════════════════════════════════════════════════════════════════════
 # RIGHT : Parameters
 # ══════════════════════════════════════════════════════════════════════════════
-def apply_selected_preset():
-    key = st.session_state.get("preset_choice")
-    if key:
-        apply_preset(key)
+with settings_area:
+    selected_preset = st.session_state.get("applied_preset")
+    snapshot = st.session_state.get("preset_snapshot", {})
+    preset_modified = bool(selected_preset) and any(st.session_state[k] != snapshot.get(k) for k in PARAMETER_KEYS)
+    status = (PRESETS[selected_preset]["label"] + (" (modified)" if preset_modified else "")) if selected_preset else "Custom settings"
+    with parameter_actions:
+        st.markdown(f'<div class="preset-status" role="status" aria-live="polite"><span class="status-label">Current:</span><span class="status-value" title="{escape(status, quote=True)}">{escape(status)}</span></div>', unsafe_allow_html=True)
+    with st.expander("Custom presets", expanded=False):
+        st.caption("Select a preset to apply it. Painted fields and guides are kept.")
+        for preset_key, preset in PRESETS.items():
+            preset_button, preset_help = st.columns([8, 1], gap="small")
+            with preset_button:
+                st.button(preset["label"], key="preset_" + preset_key,
+                          type="primary" if selected_preset == preset_key and not preset_modified else "secondary",
+                          on_click=apply_preset, args=(preset_key,), use_container_width=True)
+            with preset_help:
+                preset_description(preset["label"], preset["desc"])
 
-with settings_area, st.expander("Parameters", expanded=True):
-    selected = st.session_state.get("preset_choice")
-    preset_help = (PRESETS[selected]["desc"] if selected else
-        "Choose a preset, then select Apply preset. Painted fields and fiber guides are kept.")
-    choice = st.selectbox("Preset", [None, *PRESETS],
-        format_func=lambda k: "Custom parameters" if k is None else PRESETS[k]["label"],
-        key="preset_choice", help=preset_help)
-    st.button("Apply preset", on_click=apply_selected_preset,
-              disabled=choice is None, use_container_width=True)
-
-    with st.expander("Fiber", expanded=False):
-        st.slider("Fiber count", 20, 3000, step=10, key="num_fibers",
+    with parameter_group("Fiber", "Set the number, length and thickness of fibers."):
+        parameter_slider("Fiber count", 20, 3000, step=10, key="num_fibers",
             help="Number of fibers to generate. More fibers usually make the image denser and take longer to render. Their starting positions follow the density map.")
-        st.slider("Fiber length", 20, 400, step=5, key="spline_length",
+        parameter_slider("Fiber length", 20, 400, step=5, key="spline_length",
             help="Integration length used to grow each fiber on the simulation grid. Higher values produce longer paths; boundaries can shorten them. This is not a calibrated physical length.")
-        st.slider("Fiber thickness", 0.5, 10.0, step=0.5, key="thickness",
+        parameter_slider("Fiber thickness", 0.5, 10.0, step=0.5, key="thickness",
             help="Width used when drawing fibers into the SHG image. Higher values make brighter bands appear thicker without changing the underlying fiber paths.")
 
-    with st.expander("Alignment", expanded=False):
-        st.slider("Overall alignment", 0.0, 1.0, step=0.01, key="G_align",
+    with parameter_group("Alignment", "Control how consistently fibers point in the same direction and how closely they follow the field."):
+        parameter_slider("Overall alignment", 0.0, 1.0, step=0.01, key="G_align",
             help="Controls variation in the generated direction field. Lower values produce more varied directions; higher values make directions more consistent. Painted directions can override the generated field locally.")
-        st.slider("Follow direction field", 0.0, 1.0, step=0.01, key="L_align",
+        parameter_slider("Follow direction field", 0.0, 1.0, step=0.01, key="L_align",
             help="Controls how strongly fibers follow the underlying direction field, and also affects field relaxation. Lower values allow more independent paths; higher values follow the field more closely.")
-        st.slider("Broad curvature", 0.0, 1.0, step=0.01, key="G_curve",
+        parameter_slider("Broad curvature", 0.0, 1.0, step=0.01, key="G_curve",
             help="Bends the generated direction field across the whole image. Lower values favor a straighter field; higher values introduce larger curved patterns. Separate from small waves along a fiber.")
 
-    with st.expander("Texture", expanded=False):
-        st.slider("Fiber waviness", 0.0, 1.0, step=0.01, key="L_curve",
+    with parameter_group("Texture", "Adjust small bends and how waviness varies across the network."):
+        parameter_slider("Fiber waviness", 0.0, 1.0, step=0.01, key="L_curve",
             help="Controls local bending, sinusoidal offsets and spline smoothing. Increasing this adds more small-scale waviness; it does not set a wavelength in physical units.")
-        st.slider("Wave variation", 0.0, 1.0, step=0.01, key="L_wave_freq",
+        parameter_slider("Wave variation", 0.0, 1.0, step=0.01, key="L_wave_freq",
             help="Controls the spatial field used to vary the waves along fibers. It changes the distribution and clustering of the wavelength factor, rather than specifying one wavelength for every fiber.")
 
-    with st.expander("Depth and focus", expanded=False):
+    with parameter_group("Depth and focus", "Distribute fibers across depth planes and control blur away from the focal plane."):
         st.caption("A layered projection with depth-dependent blur.")
-        st.slider("Fiber layers", 1, 20, step=1, key="n_layers",
+        parameter_slider("Fiber layers", 1, 20, step=1, key="n_layers",
             help="Splits the existing fibers into this many planes. It does not multiply the fiber count. Each plane is blurred according to its distance from the focal plane.")
-        st.slider("Depth range", 0.5, 50.0, step=0.1, key="depth",
+        parameter_slider("Depth range", 0.5, 50.0, step=0.1, key="depth",
             help="Model depth range used to space the layers and calculate defocus blur. Higher values increase separation and blur away from focus. These are model units, not calibrated micrometers.")
-        st.slider("Focus position", 0.0, 1.0, step=0.1, key="focal_plane",
+        parameter_slider("Focus position", 0.0, 1.0, step=0.1, key="focal_plane",
             help="Position within the depth range: 0 is the front and 1 is the back. With one layer, the layer is at the front; moving focus away from 0 adds blur.")
 
-    with st.expander("Random seed", expanded=False):
-        st.number_input("Random seed", step=1, key="seed",
+    with parameter_group("Random seed", "Use the same seed and settings to reproduce a network. Change the seed for a different network."):
+        parameter_number("Random seed", step=1, key="seed",
             help="Repeat a seed with the same fields, guides and parameters to reproduce the same generated network. Change it to generate another realization.")
 
 
@@ -599,9 +686,8 @@ with settings_area, st.expander("Parameters", expanded=True):
 # MIDDLE : Render & Output
 # ══════════════════════════════════════════════════════════════════════════════
 with col_mid:
-    st.subheader("Output")
-    st.caption("View the image and fiber paths.")
-    render_btn = st.button("Render image", type="primary", use_container_width=True)
+    with output_actions:
+        render_btn = st.button("Render image", type="primary", use_container_width=True)
 
     output_slot = st.empty()
     if render_btn:
