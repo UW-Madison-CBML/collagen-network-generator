@@ -1,5 +1,5 @@
 """
-SHG Fiber Simulator — app.py
+SHG Fiber Simulator : app.py
 Custom canvas component with density painting, vector field painting, and well placement.
 """
 import base64, io, json, os
@@ -28,6 +28,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from synthetic_code.VectorField import *
+from synthetic_code.VectorField import _well_weight_and_tangent
 from synthetic_code.SplineSample import *
 from synthetic_code.Rasterize import *
 
@@ -133,10 +134,10 @@ _ss("L_curve",      0.50)
 _ss("L_conn",       0.50)
 _ss("L_wave_freq",  0.25)
 _ss("seed",         42)
-_ss("show_density", True)
+_ss("show_density", False)
 _ss("show_vectors", True)
 _ss("show_splines", True)
-_ss("show_quiver",  True)
+_ss("show_quiver",  False)
 _ss("wave_amplitude_px", 2.8)
 _ss("wave_wavelength_px", None)
 
@@ -148,216 +149,127 @@ ACCENT = "#cc1543"
 
 
 # ── Page config ────────────────────────────────────────────────────────────────
-st.set_page_config(page_title="SHG Simulator", layout="wide", initial_sidebar_state="collapsed",page_icon="assets/uw-logo-vertical-color-web-digital.png")
-# st.markdown("""<style>
-# html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{background:#0d1117!important;color:#e2e8f0!important}
-# [data-testid="stAppViewBlockContainer"]{padding-top:0.8rem!important}
-# #MainMenu,footer,header,[data-testid="stDeployButton"],[data-testid="stToolbar"],[data-testid="collapsedControl"]{display:none!important}
-# *{font-family:Inter,system-ui,sans-serif!important}
-# [data-testid="stSlider"] label{color:#94a3b8!important;font-size:12px!important}
-# [data-testid="stButton"]>button{background:#1e2535!important;border:1.5px solid #2d3650!important;color:#94a3b8!important;border-radius:7px!important;transition:all .15s!important}
-# [data-testid="stButton"]>button:hover{border-color:#4ade8066!important;color:#4ade80!important}
-# button[kind="primary"]{background:#4ade8022!important;border-color:#4ade80!important;color:#4ade80!important;font-weight:700!important}
-# button[kind="primary"]:hover{background:#4ade8033!important}
-# [data-testid="stExpander"]{background:#161b27!important;border:1px solid #2d3650!important;border-radius:8px!important}
-# [data-testid="stExpander"] summary{color:#94a3b8!important}
-# hr{border-color:#2d3650!important;margin:0.6rem 0!important}
-# [data-testid="stDownloadButton"]>button{background:#60a5fa18!important;border:1.5px solid #60a5fa!important;color:#60a5fa!important;border-radius:7px!important;width:100%!important}
-# [data-testid="stNumberInput"] input{background:#1e2535!important;border:1px solid #2d3650!important;color:#e2e8f0!important;border-radius:6px!important}
-# [data-testid="stCheckbox"] label{color:#94a3b8!important;font-size:12px!important}
-# iframe[title="shg_canvas"]{min-height:660px!important}
-# </style>""", unsafe_allow_html=True)
-
+st.set_page_config(page_title="SHG Simulator", layout="wide", page_icon="assets/uw-logo-vertical-color-web-digital.png")
 st.markdown(f"""
 <style>
-    :root {{
-        --shg-surface: var(--secondary-background-color, #f8fafc);
-        --shg-text: var(--text-color, #0f172a);
-        --shg-muted: color-mix(in srgb, var(--text-color, #0f172a) 65%, var(--background-color, #ffffff));
-        --shg-border: color-mix(in srgb, var(--text-color, #0f172a) 18%, var(--background-color, #ffffff));
-    }}
-  .brand-bar {{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 0 10px;
-    border-bottom: 1px solid var(--shg-border);
-    margin-bottom: 10px;
-  }}
-  .brand-left {{
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }}
-  .brand-divider {{
-    width: 1px;
-    height: 36px;
-    background: #cc154366;
-    flex-shrink: 0;
-  }}
-  .brand-lab {{
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }}
-  .brand-lab-name {{
-    font-size: 13px;
-    font-weight: 700;
-    color: #cc1543;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }}
-  .brand-lab-sub {{
-    font-size: 10px;
-    color: var(--shg-muted);
-    font-weight: 400;
-    letter-spacing: 0.02em;
-  }}
-  .brand-app {{
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }}
-  .brand-app-title {{
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--shg-text);
-  }}
-  .brand-app-sub {{
-    font-size: 11px;
-    color: var(--shg-muted);
-  }}
-  .brand-right img {{
-    height: 40px;
-    opacity: 0.9;
-  }}
-  /* Tint the active-preset indicator and primary button to match UW red */
-  button[kind="primary"] {{
-    background: #cc154322 !important;
-    border-color: #cc1543 !important;
-    color: #cc1543 !important;
-  }}
-  button[kind="primary"]:hover {{
-    background: #cc154333 !important;
-  }}
-  /* Tint the render-button glow */
-  .stButton > button:hover {{
-    border-color: #cc154366 !important;
-    color: #cc1543 !important;
-  }}
+:root {{
+  --shg-surface: var(--secondary-background-color, #f7f7f7);
+  --shg-text: var(--text-color, #222222);
+  --shg-muted: color-mix(in srgb, var(--text-color, #222222) 80%, var(--background-color, #ffffff));
+  --shg-border: color-mix(in srgb, var(--text-color, #222222) 24%, var(--background-color, #ffffff));
+}}
+[data-testid="stMainBlockContainer"] {{ padding: 4.5rem 2.5rem 2rem; max-width: 1900px; }}
+.research-header {{ display:flex; align-items:center; justify-content:space-between;
+  gap:24px; flex-wrap:wrap; border-bottom:3px solid #c5050c; padding-bottom:20px; margin-bottom:20px; }}
+.research-header h1 {{ font-size:36px; font-weight:600; padding:0; margin:0; line-height:1.25; }}
+.research-header p {{ margin:6px 0 0; font-size:20px; color:var(--shg-muted); }}
+.research-header img {{ width:190px; height:auto; }}
+[data-testid="stHeadingWithActionElements"] h3 {{ font-size:28px; font-weight:650; padding-top:0; }}
+[data-testid="stExpander"] summary p {{ font-size:22px!important; font-weight:600; }}
+[data-testid="stCaptionContainer"] p {{ font-size:20px; line-height:1.5; color:var(--shg-muted); }}
+[data-testid="stWidgetLabel"] p, [data-testid="stButton"] button p,
+[data-testid="stDownloadButton"] button p, [data-testid="stNumberInput"] input,
+[data-testid="stExpander"] summary p, [data-testid="stTabs"] button p {{ font-size:21px; line-height:1.45; }}
+[data-testid="stButton"] button, [data-testid="stDownloadButton"] button {{
+  min-height:44px; padding:8px 14px; border-radius:4px;
+}}
+button[kind="primary"] {{ background:#c5050c!important; border-color:#c5050c!important; color:#fff!important; }}
+button[kind="primary"]:hover {{ background:#9b0000!important; color:#fff!important; }}
+button:focus-visible, input:focus-visible, summary:focus-visible {{ outline:3px solid #c5050c; outline-offset:3px; }}
+button[aria-label^="Help for"] {{ color:#c5050c; min-width:28px; min-height:28px; }}
+button[aria-label^="Help for"] svg {{ width:22px; height:22px; }}
+[data-baseweb="select"] *, [role="listbox"] *, [role="option"] {{ font-size:22px!important; line-height:1.4!important; }}
+[data-testid="stTabs"] [role="tablist"] {{ order:2; }}
+[data-testid="stTabs"] [role="tabpanel"] {{ order:1; padding-top:0; }}
+[role="tooltip"] {{ font-size:20px; line-height:1.5; }}
+[data-testid="stSliderTickBarMin"], [data-testid="stSliderTickBarMax"],
+[data-testid="stSliderThumbValue"] {{ font-size:20px; }}
+[data-testid="stExpander"] {{ border-radius:4px; }}
+[data-testid="stExpander"] summary {{ min-height:48px; }}
+.output-empty {{ aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+  border:1px solid var(--shg-border); background:var(--shg-surface); padding:32px;
+  font-size:21px; line-height:1.6; text-align:center; color:var(--shg-muted); }}
+@media (max-width:900px) {{
+  [data-testid="stMainBlockContainer"] {{ padding:4.5rem 1rem 2rem; }}
+  .research-header h1 {{ font-size:26px; }}
+  .research-header img {{ width:160px; }}
+}}
 </style>
-
-<div class="brand-bar">
-  <div class="brand-left">
-    <img src="data:image/png;base64,{LOGO_B64_horizontal}" style="height:55px;opacity:0.95" alt="UW–Madison">
-    <div class="brand-divider"></div>
-    <div class="brand-lab">
-      <div class="brand-lab-name">CBML</div>
-      <div class="brand-lab-sub">Computational Biology &amp; Machine Learning</div>
-    <div class="brand-lab-sub">Bhaskar Lab · UW–Madison</div>
-    </div>
-    <div class="brand-divider"></div>
-    <div class="brand-app">
-    <div class="brand-app-title">SHG Fiber Simulator</div>
-      <div class="brand-app-sub">Interactive Field Editor</div>
-    </div>
-  </div>
-</div>
+<header class="research-header">
+  <div><h1>SHG Fiber Simulator</h1><p>Bhaskar Lab · Computational Biology &amp; Machine Learning</p></div>
+  <img src="data:image/png;base64,{LOGO_B64_horizontal}" alt="University of Wisconsin–Madison">
+</header>
 """, unsafe_allow_html=True)
 
-# st.markdown(f"""<style>
-# html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{{background:{BG}!important;color:{TEXT}!important}}
-# [data-testid="stAppViewBlockContainer"]{{padding-top:0.8rem!important}}
-# #MainMenu,footer,header,[data-testid="stDeployButton"],[data-testid="stToolbar"],[data-testid="collapsedControl"]{{display:none!important}}
-# *{{font-family:Inter,system-ui,sans-serif!important}}
-# [data-testid="stSlider"] label{{color:{MUTED}!important;font-size:12px!important}}
-# [data-testid="stButton"]>button{{background:{PANEL}!important;border:1.5px solid {BORDER}!important;color:{MUTED}!important;border-radius:7px!important;transition:all .15s!important}}
-# [data-testid="stButton"]>button:hover{{border-color:{ACCENT}66!important;color:{ACCENT}!important}}
-# button[kind="primary"]{{background:{ACCENT}22!important;border-color:{ACCENT}!important;color:{ACCENT}!important;font-weight:700!important}}
-# button[kind="primary"]:hover{{background:{ACCENT}33!important}}
-# [data-testid="stExpander"]{{background:{SURFACE}!important;border:1px solid {BORDER}!important;border-radius:8px!important}}
-# [data-testid="stExpander"] summary{{color:{MUTED}!important}}
-# hr{{border-color:{BORDER}!important;margin:0.6rem 0!important}}
-# [data-testid="stDownloadButton"]>button{{background:#60a5fa18!important;border:1.5px solid #60a5fa!important;color:#60a5fa!important;border-radius:7px!important;width:100%!important}}
-# [data-testid="stNumberInput"] input{{background:{PANEL}!important;border:1px solid {BORDER}!important;color:{TEXT}!important;border-radius:6px!important}}
-# [data-testid="stCheckbox"] label{{color:{MUTED}!important;font-size:12px!important}}
-# iframe[title="shg_canvas"]{{min-height:660px!important}}
-# .tip-wrap{{position:relative;display:inline-flex;align-items:center;gap:5px;font-size:14px;color:{TEXT};font-weight:400;letter-spacing:0;text-transform:none;margin-bottom:4px}}
-# .tip{{position:relative;display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid {BORDER};color:{MUTED};font-size:9px;font-weight:700;cursor:default;flex-shrink:0}}
-# .tip:hover::after{{content:attr(data-tip);position:absolute;right:0;top:20px;background:{PANEL};border:1px solid {BORDER};border-radius:6px;padding:6px 10px;font-size:11px;color:{TEXT};width:max-content;max-width:min(320px,90vw);white-space:normal;word-wrap:break-word;line-height:1.5;pointer-events:none;z-index:9999;font-weight:400;text-transform:none;letter-spacing:0}}
-# </style>""", unsafe_allow_html=True)
-
-# Add this once, e.g. right after your existing st.markdown("""<style>...""") call
+# Readable native inputs and contextual help.
 st.markdown("""
 <style>
-.tip-wrap {
-    position: relative;      /* establishes positioning context for the tooltip */
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 14px;
-    color: var(--shg-text);
-    font-weight: 400;
-    letter-spacing: 0;
-    text-transform: none;
-    margin-bottom: 4px;
+[data-testid="stSelectbox"] input, [data-testid="stSelectbox"] div,
+[data-testid="stSelectbox"] span, [role="combobox"], [role="option"] * {
+  font-size:22px!important; line-height:1.4!important;
 }
-
-.tip {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 1px solid var(--shg-border);
-    color: var(--shg-muted);
-    font-size: 9px;
-    font-weight: 700;
-    cursor: default;
-    flex-shrink: 0;
+[data-testid="stTooltipContent"] *, [data-baseweb="tooltip"] *, [role="tooltip"] * {
+  font-size:22px!important; line-height:1.5!important;
 }
-
-.tip:hover::after {
-    content: attr(data-tip);
-    position: absolute;
-    right: 0;
-    top: 20px;
-    background: var(--shg-surface);
-    border: 1px solid var(--shg-border);
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 11px;
-    color: var(--shg-text);
-    width: max-content;          /* grow to fit the text naturally */
-    max-width: min(320px, 90vw); /* but never wider than 320px or 90% of viewport */
-    white-space: normal;
-    word-wrap: break-word;
-    line-height: 1.5;
-    pointer-events: none;
-    z-index: 9999;
-    font-weight: 400;
-    text-transform: none;
-    letter-spacing: 0;
-}
-/* Flip left when near right edge */
- .tip.flip:hover::after { left: auto; right: 18px; }
+.preset-description { font-size:21px; line-height:1.5; color:var(--shg-text); margin:0 0 12px; }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<style>[data-testid='stSlider'] label { display:none !important; }</style>", unsafe_allow_html=True)
+from contextlib import contextmanager
+from html import escape
 
-# Helper — replaces your _sec() calls where you want a tooltip
-def _sec_tip(label, tip, flip=False):
-    flip_cls = " flip" if flip else ""
-    st.markdown(
-        f"<div class='tip-wrap'>{label}"
-        f"<span class='tip{flip_cls}' data-tip='{tip}'>?</span>"
-        f"</div>",
-        unsafe_allow_html=True,
-    )
+@contextmanager
+def parameter_group(label, description):
+    with st.expander(label, expanded=False):
+        st.caption(description)
+        yield
+
+def help_icon(label, description):
+    return f'''<span class="parameter-help">
+      <span class="help-circle" tabindex="0" aria-label="Help for {escape(label)}">?</span>
+      <span class="parameter-help-card" role="tooltip">{escape(description)}</span>
+    </span>'''
+
+def preset_description(label, description):
+    st.markdown(f'<div class="preset-help-row">{help_icon(label, description)}</div>', unsafe_allow_html=True)
+
+def parameter_label(label, description):
+    st.markdown(f'<div class="parameter-label"><span>{escape(label)}</span>{help_icon(label, description)}</div>', unsafe_allow_html=True)
+
+def parameter_slider(label, *args, help, **kwargs):
+    parameter_label(label, help)
+    return st.slider(label, *args, label_visibility="collapsed", **kwargs)
+
+def parameter_number(label, *args, help, **kwargs):
+    parameter_label(label, help)
+    return st.number_input(label, *args, label_visibility="collapsed", **kwargs)
+
+st.markdown("""
+<style>
+.parameter-label { display:flex; align-items:center; justify-content:space-between;
+  gap:16px; font-size:21px; font-weight:500; line-height:1.45; margin-top:4px; }
+.parameter-help { display:inline-flex; position:relative; flex:0 0 22px; }
+.help-circle { box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; border:2px solid #737780; border-radius:50%;
+  font:600 15px/1 sans-serif; color:#737780; cursor:help; }
+.preset-help-row { display:flex; justify-content:center; padding-top:9px; }
+.parameter-help-card { display:none; position:absolute; right:0; top:100%; z-index:1000;
+  width:min(360px,75vw); padding:16px; border:1px solid var(--shg-border);
+  border-radius:6px; background:var(--background-color,white); color:var(--shg-text);
+  font-size:21px; font-weight:400; line-height:1.5; box-shadow:0 3px 10px #0002; }
+.parameter-help:hover .parameter-help-card,
+.help-circle:focus-visible + .parameter-help-card { display:block; }
+.help-circle:focus-visible { outline:3px solid #c5050c; outline-offset:3px; }
+[data-testid="stSlider"] { padding-top:14px; padding-bottom:4px; }
+[data-testid="stSliderThumbValue"] { font-size:20px!important; line-height:1.3; }
+[data-testid="stNumberInput"] { margin-top:4px; margin-bottom:6px; }
+[data-testid="stMarkdownContainer"] .preset-status { height:48px; min-height:48px; min-width:0; box-sizing:border-box;
+  padding:8px 14px; border-left:4px solid #c5050c; display:flex; flex-wrap:nowrap;
+  align-items:center; gap:10px; overflow:hidden; background:var(--shg-surface); cursor:default; }
+.preset-status .status-label { flex:0 0 auto; white-space:nowrap; font-size:20px!important; font-weight:500; color:var(--shg-muted); }
+.preset-status .status-value { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:24px!important; font-weight:600; line-height:1.4; color:var(--shg-text); }
+</style>
+""", unsafe_allow_html=True)
 
 # ── Component ──────────────────────────────────────────────────────────────────
 _COMP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "canvas_component")
@@ -417,7 +329,7 @@ def blend_orientation(Qx_g, Qy_g, vec_qx, vec_qy, vec_mag):
     Qx = np.where(has_paint, (1.0 - mag2d) * Qx_g + mag2d * qx_p, Qx_g)
     Qy = np.where(has_paint, (1.0 - mag2d) * Qy_g + mag2d * qy_p, Qy_g)
 
-    # Renormalize — a linear blend of unit vectors is not itself a unit vector
+    # Renormalize : a linear blend of unit vectors is not itself a unit vector
     norm = np.sqrt(Qx**2 + Qy**2)
     norm = np.where(norm < 1e-8, 1.0, norm)
     return Qx / norm, Qy / norm
@@ -462,12 +374,12 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size, grid_size=None,
                   width=0.004)
 
     if show_splines and splines:
-        for sp in splines:
+        for i, sp in enumerate(splines):
             if len(sp) > 0:
                 # sp[:,0] = row (y), sp[:,1] = col (x) in grid coords
                 ax.plot(sp[:, 1] * display_scale,
                         sp[:, 0] * display_scale,
-                        color="white", linewidth=1.0, alpha=0.75)
+                        color=plt.get_cmap("tab20")(i % 20), linewidth=1.1, alpha=0.9)
 
     return ax
 
@@ -475,7 +387,7 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size, grid_size=None,
 # st.markdown("""
 # <div style="display:flex;align-items:center;gap:10px;padding:4px 0 10px">
 #   <div style="width:9px;height:9px;border-radius:50%;background:#cc1543;box-shadow:0 0 12px #cc154388;flex-shrink:0"></div>
-#   <span style="font-size:15px;font-weight:700;letter-spacing:-0.02em">SHG Fiber Simulator</span>
+#   <span style="font-size:20px;font-weight:700;letter-spacing:-0.02em">SHG Fiber Simulator</span>
 #   <span style="color:#475569;font-size:12px">Interactive Field Editor</span>
 # </div><hr>""", unsafe_allow_html=True)
 
@@ -501,7 +413,7 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size, grid_size=None,
 # </div>
 # """, unsafe_allow_html=True)
 
-# Toggle button — sits in top-right via Streamlit columns trick
+# Toggle button : sits in top-right via Streamlit columns trick
 # _, toggle_col = st.columns([0.85, 0.15])
 # with toggle_col:
 #     label = "☀️ Light" if st.session_state.dark_mode else "🌙 Dark"
@@ -510,34 +422,43 @@ def plot_fields(ax, D, Qx, Qy, splines, image_size, grid_size=None,
 #         st.rerun()
 
 # ── Layout ─────────────────────────────────────────────────────────────────────
-col_left, col_mid, col_right = st.columns([2.1, 2.1, 1.1], gap="medium")
+header_columns = st.columns([1.3, 1.3, 1], gap="medium")
+for column, title, description in zip(header_columns,
+        ("Field editor", "Output", "Parameters"),
+        ("Edit density and fiber direction.", "View the image and fiber paths.",
+         "Adjust settings, then select Render image.")):
+    with column:
+        st.subheader(title)
+        st.caption(description)
+editor_actions, output_actions, parameter_actions = st.columns([1.3, 1.3, 1], gap="medium")
+col_left, col_mid, settings_area = st.columns([1.3, 1.3, 1], gap="medium")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# LEFT — Canvas
+# LEFT : Canvas
 # ══════════════════════════════════════════════════════════════════════════════
 with col_left:
-    tc1, tc2 = st.columns(2, gap="small")
-    with tc1:
-        if st.button("🟢 Density / Vectors", use_container_width=True,
-                     type="primary" if st.session_state.active_tab=="density" else "secondary"):
-            if st.session_state.active_tab != "density":
-                st.session_state.active_tab = "density"; st.rerun()
-    with tc2:
-        if st.button("🔵 Orientation Wells", use_container_width=True,
-                     type="primary" if st.session_state.active_tab=="wells" else "secondary"):
-            if st.session_state.active_tab != "wells":
-                st.session_state.active_tab = "wells"; st.rerun()
+    with editor_actions:
+        tc1, tc2 = st.columns(2, gap="small")
+        with tc1:
+            if st.button("Paint fields", use_container_width=True,
+                         type="primary" if st.session_state.active_tab=="density" else "secondary"):
+                if st.session_state.active_tab != "density":
+                    st.session_state.active_tab = "density"; st.rerun()
+        with tc2:
+            if st.button("Fiber guides", use_container_width=True,
+                         type="primary" if st.session_state.active_tab=="wells" else "secondary"):
+                if st.session_state.active_tab != "wells":
+                    st.session_state.active_tab = "wells"; st.rerun()
 
-    st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
     result = shg_canvas(
         mode        = st.session_state.active_tab,
         canvas_size = CANVAS_SIZE,
         wells       = st.session_state.wells,
-        density_b64 = to_b64(st.session_state.density_arr),
-        vec_qx_b64  = to_b64(st.session_state.vec_qx_arr),
-        vec_qy_b64  = to_b64(st.session_state.vec_qy_arr),
-        vec_mag_b64 = to_b64(st.session_state.vec_mag_arr),
+        density_b64 = to_b64(st.session_state.density_arr) if np.any(st.session_state.density_arr) else "",
+        vec_qx_b64  = to_b64(st.session_state.vec_qx_arr) if np.any(st.session_state.vec_mag_arr) else "",
+        vec_qy_b64  = to_b64(st.session_state.vec_qy_arr) if np.any(st.session_state.vec_mag_arr) else "",
+        vec_mag_b64 = to_b64(st.session_state.vec_mag_arr) if np.any(st.session_state.vec_mag_arr) else "",
         key         = "shg_canvas",
     )
 
@@ -554,38 +475,16 @@ with col_left:
         elif rt == "wells":
             st.session_state.wells = result.get("wells", [])
         elif rt == "sync":
-            # Sent after loading a file in the JS — sync all state to Python
+            # Sent after loading a file in the JS : sync all state to Python
             if result.get("density_b64"):  st.session_state.density_arr = from_b64(result["density_b64"], sz)
             if result.get("vec_qx_b64"):   st.session_state.vec_qx_arr  = from_b64(result["vec_qx_b64"],  sz)
             if result.get("vec_qy_b64"):   st.session_state.vec_qy_arr  = from_b64(result["vec_qy_b64"],  sz)
             if result.get("vec_mag_b64"):  st.session_state.vec_mag_arr = from_b64(result["vec_mag_b64"], sz)
             if result.get("wells") is not None: st.session_state.wells = result["wells"]
 
-    # Legend
-    st.markdown("""
-    <div style="display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:6px">
-        <div style="width:72px;height:6px;border-radius:3px;background:linear-gradient(to right,#440154,#3b528b,#21908d,#5dc963,#fde725)"></div>
-        <span style="color:var(--shg-muted);font-size:10px">density</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <div style="width:18px;height:6px;border-radius:3px;background:#a78bfa"></div>
-        <span style="color:var(--shg-muted);font-size:10px">painted orientation</span>
-      </div>
-    </div>""", unsafe_allow_html=True)
-
-    # Status
-    has_d   = float(st.session_state.density_arr.max()) > 1e-3
-    has_v   = float(st.session_state.vec_mag_arr.max()) > 1e-3
+    has_d = float(st.session_state.density_arr.max()) > 1e-3
+    has_v = float(st.session_state.vec_mag_arr.max()) > 1e-3
     n_wells = len(st.session_state.wells)
-    st.markdown(f"""
-    <div style="background:var(--shg-surface);border:1px solid var(--shg-border);border-radius:8px;padding:9px 12px;font-size:11px;margin-top:8px">
-      <div style="display:flex;gap:16px;flex-wrap:wrap">
-        <span style="color:var(--shg-muted)">Density: <span style="color:{'#4ade80' if has_d else '#f87171'}">{'painted' if has_d else 'empty'}</span></span>
-        <span style="color:var(--shg-muted)">Vectors: <span style="color:{'#a78bfa' if has_v else '#64748b'}">{'painted' if has_v else 'empty'}</span></span>
-        <span style="color:#64748b">Wells: <span style="color:#60a5fa">{n_wells}</span></span>
-      </div>
-    </div>""", unsafe_allow_html=True)
 
 # ── Presets ─────────────────────────────────────────────────────────────────────
 # Mapped from legacy synthetic_class_params. Fields not present in current UI
@@ -598,9 +497,9 @@ PRESETS = {
     #syn.generate_synthetic_shg(seed=11, G_align=0.7, G_density=0.7, G_curve=0.5, G_conn=1, L_align=0.6, L_density=0, L_conn=0.3, L_curve=0, L_intensity=0.5, spline_length=50, spline_num=1200)
     #
     "RED": {
-        "label": "Type 1 (Cancerous Tending)",
+        "label": "Aligned short fibers",
         "color": "#f87171",
-        "desc":  "High density, high alignment, short fibers",
+        "desc":  "1,200 short fibers with strong overall alignment and moderate broad curvature.",
         "params": {
             "G_align":       0.7,
             "L_align":       0.6,
@@ -615,9 +514,9 @@ PRESETS = {
     },
     "YELLOW_BAD": { # syn.generate_synthetic_shg(seed=10, G_align=0.4, G_density=0.7, G_curve=0, G_conn=1, L_align=0.3, L_density=0.4, L_conn=1, L_curve=0, spline_length=60, spline_num=1200)
 
-        "label": "Type 2 (Non-cancerous Tending)",
+        "label": "Loosely aligned fibers",
         "color": "#fbbf24",
-        "desc":  "Low alignment, moderate density, short fibers",
+        "desc":  "1,200 short fibers with weaker alignment and little added waviness.",
         "params": {
             "G_align":       0.4,
             "L_align":       0.3,
@@ -631,9 +530,9 @@ PRESETS = {
         },
     },
     "YELLOW_GOOD": {# syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=0.7, G_conn=1, L_align=1, L_density=0.6, L_conn=0.3, L_curve=0, spline_length=70, spline_num=1200)
-        "label": "Type 3 (Non-cancerous Tending)",
+        "label": "Curved, field-following fibers",
         "color": "#fde68a",
-        "desc":  "Very high density, moderate curve, many short fibers",
+        "desc":  "800 fibers with broad curvature and strong following of the underlying direction field.",
         "params": {
             "G_align":       0.2,
             "L_align":       1.0,
@@ -647,9 +546,9 @@ PRESETS = {
         },
     },
     "INTERESTING": { # syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=1, G_conn=1, L_align=0.6, L_density=0.55, L_conn=1, L_curve=0, spline_length=40, spline_num=3000)
-        "label": "Type 4 (Non-cancerous Tending)",
+        "label": "Dense curved network",
         "color": "#a78bfa",
-        "desc":  "Balanced alignment and density",
+        "desc":  "3,000 short fibers with strong broad curvature and weak overall alignment.",
         "params": {
             "G_align":       0.2,
             "L_align":       0.6,
@@ -664,9 +563,9 @@ PRESETS = {
     },
     "CYAN": { #syn.generate_synthetic_shg(seed=10, G_align=0.95, G_density=0.7, G_curve=0, G_conn=1, L_align=0.6, L_density=0.4, L_conn=1, L_curve=0.6, spline_length=60, spline_num=1200, wave_amplitude_px=6, wave_wavelength_px=30, L_wave_freq=0.5)
 
-        "label": "Type 5 (Cancerous Tending)",
+        "label": "Aligned wavy fibers",
         "color": "#22d3ee",
-        "desc":  "",
+        "desc":  "1,200 short fibers with strong overall alignment and more local waviness.",
         "params": {
             "G_align":       0.95,
             "L_align":       0.6,
@@ -682,7 +581,7 @@ PRESETS = {
     # "ORANGE": {
     #     "label": "ORANGE",
     #     "color": "#fb923c",
-    #     "desc":  "Balanced — test configuration",
+    #     "desc":  "Balanced : test configuration",
     #     "params": {
     #         "G_align":       0.5,
     #         "L_align":       0.5,
@@ -697,113 +596,84 @@ PRESETS = {
     # },
 }
 
+PARAMETER_KEYS = ("num_fibers", "spline_length", "thickness", "G_align", "L_align",
+                  "G_curve", "L_curve", "L_wave_freq", "n_layers", "depth", "focal_plane", "seed")
+
 def apply_preset(key):
     p = PRESETS[key]["params"]
     for k, v in p.items():
         st.session_state[k] = v
+    st.session_state.applied_preset = key
+    st.session_state.preset_snapshot = {k: st.session_state[k] for k in PARAMETER_KEYS}
 
 # ══════════════════════════════════════════════════════════════════════════════
-# RIGHT — Parameters
+# RIGHT : Parameters
 # ══════════════════════════════════════════════════════════════════════════════
-with col_right:
-    def _sec(label):
-        st.markdown(f"<div style='color:var(--shg-muted);font-size:10px;font-weight:700;letter-spacing:.07em;"
-                    f"text-transform:uppercase;margin:10px 0 6px'>{label}</div>", unsafe_allow_html=True)
+with settings_area:
+    selected_preset = st.session_state.get("applied_preset")
+    snapshot = st.session_state.get("preset_snapshot", {})
+    preset_modified = bool(selected_preset) and any(st.session_state[k] != snapshot.get(k) for k in PARAMETER_KEYS)
+    status = (PRESETS[selected_preset]["label"] + (" (modified)" if preset_modified else "")) if selected_preset else "Custom settings"
+    with parameter_actions:
+        st.markdown(f'<div class="preset-status" role="status" aria-live="polite"><span class="status-label">Current:</span><span class="status-value" title="{escape(status, quote=True)}">{escape(status)}</span></div>', unsafe_allow_html=True)
+    with st.expander("Custom presets", expanded=False):
+        st.caption("Select a preset to apply it. Painted fields and guides are kept.")
+        for preset_key, preset in PRESETS.items():
+            preset_button, preset_help = st.columns([8, 1], gap="small")
+            with preset_button:
+                st.button(preset["label"], key="preset_" + preset_key,
+                          type="primary" if selected_preset == preset_key and not preset_modified else "secondary",
+                          on_click=apply_preset, args=(preset_key,), use_container_width=True)
+            with preset_help:
+                preset_description(preset["label"], preset["desc"])
 
-    # ── Preset selector ────────────────────────────────────────────────────────
-    _sec("Presets")
+    with parameter_group("Fiber", "Set the number, length and thickness of fibers."):
+        parameter_slider("Fiber count", 20, 3000, step=10, key="num_fibers",
+            help="Number of fibers to generate. More fibers usually make the image denser and take longer to render. Their starting positions follow the density map.")
+        parameter_slider("Fiber length", 20, 400, step=5, key="spline_length",
+            help="Integration length used to grow each fiber on the simulation grid. Higher values produce longer paths; boundaries can shorten them. This is not a calibrated physical length.")
+        parameter_slider("Fiber thickness", 0.5, 10.0, step=0.5, key="thickness",
+            help="Width used when drawing fibers into the SHG image. Higher values make brighter bands appear thicker without changing the underlying fiber paths.")
 
-    # Build colored preset buttons via HTML — one per row for legibility
-    for preset_key, preset in PRESETS.items():
-        col_dot, col_btn = st.columns([0.08, 0.92], gap="small")
-        with col_dot:
-            st.markdown(
-                f"<div style='width:10px;height:10px;border-radius:50%;"
-                f"background:{preset['color']};margin-top:10px'></div>",
-                unsafe_allow_html=True,
-            )
-        with col_btn:
-            if st.button(preset["label"], key=f"preset_{preset_key}", use_container_width=True):
-                apply_preset(preset_key)
-                st.rerun()
+    with parameter_group("Alignment", "Control how consistently fibers point in the same direction and how closely they follow the field."):
+        parameter_slider("Overall alignment", 0.0, 1.0, step=0.01, key="G_align",
+            help="Controls variation in the generated direction field. Lower values produce more varied directions; higher values make directions more consistent. Painted directions can override the generated field locally.")
+        parameter_slider("Follow direction field", 0.0, 1.0, step=0.01, key="L_align",
+            help="Controls how strongly fibers follow the underlying direction field, and also affects field relaxation. Lower values allow more independent paths; higher values follow the field more closely.")
+        parameter_slider("Broad curvature", 0.0, 1.0, step=0.01, key="G_curve",
+            help="Bends the generated direction field across the whole image. Lower values favor a straighter field; higher values introduce larger curved patterns. Separate from small waves along a fiber.")
 
-    # Show description of active preset (whichever matches current params)
-    active_preset = None
-    for pk, pv in PRESETS.items():
-        if all(abs(st.session_state.get(k, 0) - v) < 0.01
-               for k, v in pv["params"].items()):
-            active_preset = pv
-            break
-    if active_preset:
-        st.markdown(
-            f"<div style='background:var(--shg-surface);border:1px solid {active_preset['color']}44;"
-            f"border-radius:6px;padding:6px 9px;font-size:10px;color:var(--shg-muted);margin-top:2px'>"
-            f"<span style='color:{active_preset['color']};font-weight:700'>{active_preset['label']}</span>"
-            f" — {active_preset['desc']}</div>",
-            unsafe_allow_html=True,
-        )
-    
-    def _tip(label, tip):
-        st.markdown(
-            f"<div class='tip-wrap'>{label}"
-            f"<span class='tip' data-tip='{tip}'>?</span>"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
+    with parameter_group("Texture", "Adjust small bends and how waviness varies across the network."):
+        parameter_slider("Fiber waviness", 0.0, 1.0, step=0.01, key="L_curve",
+            help="Controls local bending, sinusoidal offsets and spline smoothing. Increasing this adds more small-scale waviness; it does not set a wavelength in physical units.")
+        parameter_slider("Wave variation", 0.0, 1.0, step=0.01, key="L_wave_freq",
+            help="Controls the spatial field used to vary the waves along fibers. It changes the distribution and clustering of the wavelength factor, rather than specifying one wavelength for every fiber.")
 
-    st.markdown("---")
-    _sec("Fiber")
-    # _sec_tip("Fiber", "Controls the number, length and thickness of individual fibers")
-    _tip("Count", "Total number of fibers")
-    st.session_state.num_fibers    = st.slider("Count",     20,  3000, st.session_state.num_fibers,    step=10)
-    _tip("Length", "Length of each fiber")
-    st.session_state.spline_length = st.slider("Length",    20,  400, st.session_state.spline_length, step=5)
-    _tip("Thickness", "Thickness of each fiber")
-    st.session_state.thickness     = st.slider("Thickness", 0.5, 10.0,st.session_state.thickness,    step=0.5)
-    # st.session_state.wave_amplitude_px     = st.slider("Wave amplitude", 0.5, 5.0,st.session_state.wave_amplitude_px,    step=0.5)
-    # st.session_state.wave_wavelength_px     = st.slider("Wave wavelength", 0.5, .0,st.session_state.wave_wavelength_px,    step=0.5)
+    with parameter_group("Depth and focus", "Distribute fibers across depth planes and control blur away from the focal plane."):
+        st.caption("A layered projection with depth-dependent blur.")
+        parameter_slider("Fiber layers", 1, 20, step=1, key="n_layers",
+            help="Splits the existing fibers into this many planes. It does not multiply the fiber count. Each plane is blurred according to its distance from the focal plane.")
+        parameter_slider("Depth range", 0.5, 50.0, step=0.1, key="depth",
+            help="Model depth range used to space the layers and calculate defocus blur. Higher values increase separation and blur away from focus. These are model units, not calibrated micrometers.")
+        parameter_slider("Focus position", 0.0, 1.0, step=0.1, key="focal_plane",
+            help="Position within the depth range: 0 is the front and 1 is the back. With one layer, the layer is at the front; moving focus away from 0 adds blur.")
 
-    st.markdown("---")
-    _sec("Alignment")
-    # _sec_tip("Alignment", "G_align: how parallel fibers are globally. L_align: how much local neighborhood smoothing is applied. Curve parameters control bending. Local Curve determines small scale waviness.")
-    _tip("Global align", "how parallel fibers are globally")
-    st.session_state.G_align = st.slider("Global align", 0.0, 1.0, st.session_state.G_align, step=0.01)
-    _tip("Local align", "Alignment with underyling vector field")
-    st.session_state.L_align = st.slider("Local align",  0.0, 1.0, st.session_state.L_align, step=0.01)
-    _tip("Global curve", "Large scale curvature")
-    st.session_state.G_curve = st.slider("Global curve", 0.0, 1.0, st.session_state.G_curve, step=0.01)
-    _tip("Local curve", "small scale waviness")
-    st.session_state.L_curve = st.slider("Local curve",  0.0, 1.0, st.session_state.L_curve, step=0.01)
-    st.markdown("---")
-    _sec("Texture")
-    # _sec_tip("Texture", "Wavelength: spatial frequency of local fiber waves")
-    # st.session_state.L_conn      = st.slider("Connectivity", 0.0, 1.0, st.session_state.L_conn,      step=0.01)
-    _tip("Wavelength", "spatial frequency of local fiber waves")
-    st.session_state.L_wave_freq = st.slider("Wavelength",  0.0, 1.0, st.session_state.L_wave_freq, step=0.01)
-    st.markdown("---")
-    _tip("Seed", "Seed value used for psuedo random number generation")
-    st.session_state.seed = st.number_input("Random seed", value=int(st.session_state.seed), step=1)
-    _sec("3D Layers")
-    # _sec_tip("3D layers", "Z depth is the overall depth of the sample. Layers: the number of distinct planes of fibers (default 1). Focal plane %: the position of the focal plane as a percentage of the total depth")
-    _tip("Layers","The number of distinct planes of fibers that are equally spaced in depth (default 1)")
-    st.session_state.n_layers = st.slider("Layers", 1,20, value=int(st.session_state.n_layers), step=1)
-    _tip("Z depth","Overall depth of the sample")
-    st.session_state.depth = st.slider("Z depth", 0.5,50.0, value=(st.session_state.depth), step=0.1)
-    _tip("Focal plane %","The position of the focal plane as a percentage of the total depth")
-    st.session_state.focal_plane = st.slider("Focal plane %", 0.0,1.0,value=(st.session_state.focal_plane), step=0.1)
+    with parameter_group("Random seed", "Use the same seed and settings to reproduce a network. Change the seed for a different network."):
+        parameter_number("Random seed", step=1, key="seed",
+            help="Repeat a seed with the same fields, guides and parameters to reproduce the same generated network. Change it to generate another realization.")
+
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MIDDLE — Render & Output
+# MIDDLE : Render & Output
 # ══════════════════════════════════════════════════════════════════════════════
 with col_mid:
-    st.markdown("<div style='color:var(--shg-muted);font-size:10px;font-weight:700;letter-spacing:.07em;"
-                "text-transform:uppercase;margin-bottom:8px'>Synthetic SHG Output</div>",
-                unsafe_allow_html=True)
+    with output_actions:
+        render_btn = st.button("Render image", type="primary", use_container_width=True)
 
-    render_btn = st.button("⟳  Render SHG Image", type="primary", use_container_width=True)
-
+    output_slot = st.empty()
     if render_btn:
-        with st.spinner("Generating SHG image…"):
+        output_slot.markdown('<div class="output-empty" role="status" aria-live="polite">Generating SHG image…</div>', unsafe_allow_html=True)
+        with st.container():
             rng   = np.random.default_rng(int(st.session_state.seed))
             X, Y  = create_grid(CANVAS_SIZE, resolution_factor=RESOLUTION_FACTOR)
             shape = X.shape
@@ -951,98 +821,98 @@ with col_mid:
                 n_wells=len(st.session_state.wells), vec_painted=has_v,
             )
 
-    # ── Display ────────────────────────────────────────────────────────────────
-    if st.session_state.shg_image is not None:
-        img_arr = st.session_state.shg_image
-        st.image(img_arr, clamp=True, use_container_width=True)
+    with output_slot.container():
+        # ── Display ────────────────────────────────────────────────────────────────
+        if st.session_state.shg_image is not None:
+            image_tab, paths_tab = st.tabs(["SHG image", "Fiber paths"])
+            with image_tab:
+                img_arr = st.session_state.shg_image
+                st.image(img_arr, clamp=True, use_container_width=True)
 
-        c1, c2 = st.columns(2, gap="small")
-        with c1:
-            norm = img_arr if img_arr.dtype==np.uint8 else (
-                (img_arr-img_arr.min())/(img_arr.max()-img_arr.min()+1e-8)*255).astype(np.uint8)
-            buf = io.BytesIO(); Image.fromarray(norm).save(buf,format="PNG")
-            st.download_button("↓ SHG PNG", data=buf.getvalue(),
-                file_name=f"shg_{st.session_state.active_params.get('seed',0)}.png",
-                mime="image/png", use_container_width=True)
-        with c2:
-            st.download_button("↓ Splines JSON",
-                data=json.dumps({"parameters":st.session_state.active_params,
-                                 "splines":[s.tolist() for s in (st.session_state.shg_splines or [])]},indent=2),
-                file_name=f"shg_splines_{st.session_state.active_params.get('seed',0)}.json",
-                mime="application/json", use_container_width=True)
+                c1, c2 = st.columns(2, gap="small")
+                with c1:
+                    norm = img_arr if img_arr.dtype==np.uint8 else (
+                        (img_arr-img_arr.min())/(img_arr.max()-img_arr.min()+1e-8)*255).astype(np.uint8)
+                    buf = io.BytesIO(); Image.fromarray(norm).save(buf,format="PNG")
+                    st.download_button("↓ SHG PNG", data=buf.getvalue(),
+                        file_name=f"shg_{st.session_state.active_params.get('seed',0)}.png",
+                        mime="image/png", use_container_width=True)
+                with c2:
+                    st.download_button("↓ Splines JSON",
+                        data=json.dumps({"parameters":st.session_state.active_params,
+                                         "splines":[s.tolist() for s in (st.session_state.shg_splines or [])]},indent=2),
+                        file_name=f"shg_splines_{st.session_state.active_params.get('seed',0)}.json",
+                        mime="application/json", use_container_width=True)
 
-        with st.expander("Parameters"):
-            st.json(st.session_state.active_params)
+                with st.expander("Rendered parameters"):
+                    st.json(st.session_state.active_params)
 
-        # ── Orientation field preview ─────────────────────────────────────────
-        st.markdown("---")
-        st.markdown("<div style='color:var(--shg-muted);font-size:10px;font-weight:700;letter-spacing:.07em;"
-                    "text-transform:uppercase;margin-bottom:6px'>Orientation Field</div>",
-                    unsafe_allow_html=True)
+            with paths_tab:
+                _ss("preview_density", False)
+                _ss("preview_directions", False)
+                _ss("preview_splines", True)
+                fig, ax = plt.subplots(figsize=(5,5), facecolor="#0d1117")
+                ax.set_facecolor("#0d1117")
+                plot_fields(
+                    ax=ax, D=st.session_state.shg_D,
+                    Qx=st.session_state.shg_Qx, Qy=st.session_state.shg_Qy,
+                    splines=st.session_state.shg_splines,
+                    image_size=CANVAS_SIZE,
+                    grid_size=st.session_state.shg_grid_size,   # add this
+                    show_density=st.session_state.preview_density,
+                    show_quiver=st.session_state.preview_directions,
+                    show_splines=st.session_state.preview_splines,
+                )
+                fig.tight_layout(pad=0)
+                st.pyplot(fig, use_container_width=True)
+                plt.close(fig)
 
-        # Visibility checkboxes
-        cb1, cb2, cb3 = st.columns(3)
-        with cb1: st.session_state.show_density = st.checkbox("Density",  value=st.session_state.show_density)
-        with cb2: st.session_state.show_quiver  = st.checkbox("Vectors",  value=st.session_state.show_quiver)
-        with cb3: st.session_state.show_splines = st.checkbox("Splines",  value=st.session_state.show_splines)
+                st.caption("Colors distinguish paths; they do not represent a measured property.")
+                # Visibility checkboxes
+                cb1, cb2, cb3 = st.columns(3)
+                with cb1: st.checkbox("Density", key="preview_density")
+                with cb2: st.checkbox("Directions", key="preview_directions")
+                with cb3: st.checkbox("Fiber paths", key="preview_splines")
 
-        fig, ax = plt.subplots(figsize=(5,5), facecolor="#0d1117")
-        ax.set_facecolor("#0d1117")
-        plot_fields(
-            ax=ax, D=st.session_state.shg_D,
-            Qx=st.session_state.shg_Qx, Qy=st.session_state.shg_Qy,
-            splines=st.session_state.shg_splines,
-            image_size=CANVAS_SIZE,
-            grid_size=st.session_state.shg_grid_size,   # add this
-            show_density=st.session_state.show_density,
-            show_quiver=st.session_state.show_quiver,
-            show_splines=st.session_state.show_splines,
-        )
-        fig.tight_layout(pad=0)
-        st.pyplot(fig, use_container_width=True)
-        plt.close(fig)
 
-        # Download orientation field PNG
-        c3, c4 = st.columns(2, gap="small")
-        with c3:
-            fig2, ax2 = plt.subplots(figsize=(5,5), facecolor="#0d1117")
-            ax2.set_facecolor("#0d1117")
-            plot_fields(ax=ax2, D=st.session_state.shg_D,
-                        Qx=st.session_state.shg_Qx, Qy=st.session_state.shg_Qy,
-                        splines=st.session_state.shg_splines, image_size=CANVAS_SIZE,
-                        grid_size=st.session_state.shg_grid_size,   # add this
-                        show_density=True, show_quiver=True, show_splines=True)
-            fig2.tight_layout(pad=0)
-            buf2 = io.BytesIO(); fig2.savefig(buf2,format="png",bbox_inches="tight",pad_inches=0,facecolor="#0d1117")
-            plt.close(fig2); buf2.seek(0)
-            st.download_button("↓ Field PNG", data=buf2.getvalue(),
-                file_name="orientation_field.png", mime="image/png", use_container_width=True)
-        with c4:
-            # Download vector field as numpy
-            vf_export = {
-                "Qx": st.session_state.shg_Qx.tolist(),
-                "Qy": st.session_state.shg_Qy.tolist(),
-                "shape": list(st.session_state.shg_Qx.shape),
-            }
-            st.download_button("↓ Vector JSON", data=json.dumps(vf_export),
-                file_name="vector_field.json", mime="application/json", use_container_width=True)
-    else:
-        st.markdown("""
-        <div style="background:var(--shg-surface);border:1px solid var(--shg-border);border-radius:8px;
-             padding:40px 20px;text-align:center;margin-top:8px">
-          <div style="font-size:32px;margin-bottom:10px;opacity:0.4">⟳</div>
-                    <div style="color:var(--shg-muted);font-size:12px;line-height:1.6">
-                        Paint density, orientation vectors,<br>optionally place wells,<br>
-                        then click <b style="color:#cc1543">Render</b>.
-          </div>
-        </div>""", unsafe_allow_html=True)
+                # Download orientation field PNG
+                c3, c4 = st.columns(2, gap="small")
+                with c3:
+                    fig2, ax2 = plt.subplots(figsize=(5,5), facecolor="#0d1117")
+                    ax2.set_facecolor("#0d1117")
+                    plot_fields(ax=ax2, D=st.session_state.shg_D,
+                                Qx=st.session_state.shg_Qx, Qy=st.session_state.shg_Qy,
+                                splines=st.session_state.shg_splines, image_size=CANVAS_SIZE,
+                                grid_size=st.session_state.shg_grid_size,   # add this
+                                show_density=st.session_state.preview_density,
+                                show_quiver=st.session_state.preview_directions,
+                                show_splines=st.session_state.preview_splines)
+                    fig2.tight_layout(pad=0)
+                    buf2 = io.BytesIO(); fig2.savefig(buf2,format="png",bbox_inches="tight",pad_inches=0,facecolor="#0d1117")
+                    plt.close(fig2); buf2.seek(0)
+                    st.download_button("↓ Preview PNG", data=buf2.getvalue(),
+                        file_name="fiber_paths.png", mime="image/png", use_container_width=True)
+                with c4:
+                    # Download vector field as numpy
+                    vf_export = {
+                        "Qx": st.session_state.shg_Qx.tolist(),
+                        "Qy": st.session_state.shg_Qy.tolist(),
+                        "shape": list(st.session_state.shg_Qx.shape),
+                    }
+                    st.download_button("↓ Vector JSON", data=json.dumps(vf_export),
+                        file_name="vector_field.json", mime="application/json", use_container_width=True)
+        else:
+            st.markdown("""
+            <div class="output-empty">Select Render image to generate an SHG image.<br>
+              An empty density map uses uniform density.
+            </div>""", unsafe_allow_html=True)
         
 st.markdown("""
 <div style="margin-top:32px;padding-top:12px;border-top:1px solid var(--shg-border);
      display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <span style="color:var(--shg-muted);font-size:10px">
+    <span style="color:var(--shg-muted);font-size:20px">
     © Bhaskar Lab · Computational Biology &amp; Machine Learning · University of Wisconsin–Madison
   </span>
-  <span style="color:#cc1543;font-size:10px;font-weight:600">CBML</span>
+  <span style="color:#cc1543;font-size:20px;font-weight:600">CBML</span>
 </div>
 """, unsafe_allow_html=True)

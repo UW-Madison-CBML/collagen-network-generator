@@ -6,25 +6,25 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background:var(--shg-bg, #ffffff); color:var(--shg-text, #0f172a); font-family:var(--shg-font, Inter,system-ui,sans-serif); overflow-x:hidden; user-select:none;
        overscroll-behavior: none; }
-#root { display:flex; flex-direction:column; gap:8px; padding:6px 6px 10px; width:100%; }
+#root { display:flex; flex-direction:column; gap:10px; padding:0 0 10px; width:100%; }
 
-.toolbar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:2px 0 4px; min-height:32px; }
-.btn { padding:4px 11px; border-radius:6px; border:1.5px solid var(--shg-border, #cbd5e1); background:transparent; color:var(--shg-muted, #64748b);
-       cursor:pointer; font-size:11px; font-weight:600; font-family:inherit; white-space:nowrap; flex-shrink:0; }
+.toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:2px 0 6px; min-height:32px; }
+.btn { padding:6px 11px; border-radius:4px; border:1.5px solid var(--shg-border, #cbd5e1); background:transparent; color:var(--shg-muted, #64748b);
+       cursor:pointer; font-size:20px; font-weight:600; font-family:inherit; line-height:1.4; white-space:nowrap; flex-shrink:0; }
 .btn:hover { border-color:var(--shg-text, #0f172a); color:var(--shg-text, #0f172a); }
-.btn.on-paint { border-color:#cc1543; background:#cc154320; color:#cc1543; }
+.btn.on-paint { border-color:#c5050c; background:#c5050c20; color:#c5050c; }
 .btn.on-erase { border-color:#f87171; background:#f8717120; color:#f87171; }
 .btn.on-vec   { border-color:#a78bfa; background:#a78bfa20; color:#a78bfa; }
 .btn.on-place { border-color:#60a5fa; background:#60a5fa20; color:#60a5fa; }
 .btn.on-move  { border-color:#f59e0b; background:#f59e0b20; color:#f59e0b; }
 .btn.on-del   { border-color:#f87171; background:#f8717120; color:#f87171; }
 .btn.danger:hover { border-color:#f87171; color:#f87171; }
-.sep { width:1px; height:16px; background:var(--shg-border, #cbd5e1); flex-shrink:0; }
+.sep { width:100%; height:0; background:var(--shg-border, #cbd5e1); flex-shrink:0; }
 .sl-row { display:flex; align-items:center; gap:4px; }
-.sl-lbl { color:var(--shg-muted, #64748b); font-size:11px; white-space:nowrap; }
-.sl-val { color:var(--shg-text, #0f172a); font-size:11px; min-width:24px; text-align:right; font-variant-numeric:tabular-nums; }
+.sl-lbl { color:var(--shg-muted, #64748b); font-size:20px; white-space:nowrap; }
+.sl-val { color:var(--shg-text, #0f172a); font-size:20px; min-width:24px; text-align:right; font-variant-numeric:tabular-nums; }
 input[type=range] { -webkit-appearance:none; width:64px; height:4px; border-radius:2px; background:var(--shg-border, #cbd5e1); cursor:pointer; outline:none; flex-shrink:0; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:#cc1543; cursor:pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#c5050c; cursor:pointer; }
 input[type=range].purple::-webkit-slider-thumb { background:#a78bfa; }
 
 .cv-outer { width:100%; position:relative; }
@@ -36,33 +36,51 @@ input[type=range].purple::-webkit-slider-thumb { background:#a78bfa; }
 #cvVec  { pointer-events:none; display:none; }
 /* Prevent scroll/zoom on the whole canvas area during touch painting */
 .cv-outer { touch-action:none; }
-#cursor-ring { position:absolute; pointer-events:none; border-radius:50%; border:2px solid #cc154380; background:#cc154310; display:none; transform:translate(-50%,-50%); }
+#cursor-ring { position:absolute; pointer-events:none; border-radius:50%; border:2px solid #c5050c80; background:#c5050c10; display:none; transform:translate(-50%,-50%); }
 
 .well-panel { width:100%; background:var(--shg-surface, #f8fafc); border:1px solid #f59e0b55; border-radius:8px; padding:10px 12px; display:none; flex-direction:column; gap:8px; }
 .well-panel.show { display:flex; }
-.wp-title { color:#f59e0b; font-size:12px; font-weight:700; }
+.wp-title { color:#f59e0b; font-size:20px; font-weight:700; }
 .wp-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; }
 .wp-row { display:flex; flex-direction:column; gap:3px; }
 .wp-head { display:flex; justify-content:space-between; }
-.wp-head .lbl { color:var(--shg-muted, #64748b); font-size:11px; }
-.wp-head .val { color:var(--shg-text, #0f172a); font-size:11px; font-variant-numeric:tabular-nums; }
+.wp-head .lbl { color:var(--shg-muted, #64748b); font-size:20px; }
+.wp-head .val { color:var(--shg-text, #0f172a); font-size:20px; font-variant-numeric:tabular-nums; }
 input.wp-sl { -webkit-appearance:none; width:100%; height:4px; border-radius:2px; background:var(--shg-border, #cbd5e1); cursor:pointer; outline:none; }
-input.wp-sl::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:#f59e0b; cursor:pointer; }
+input.wp-sl::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#f59e0b; cursor:pointer; }
 .wp-footer { display:flex; justify-content:space-between; align-items:center; padding-top:6px; border-top:1px solid var(--shg-border, #cbd5e1); margin-top:2px; }
-.wp-pos { color:var(--shg-muted, #64748b); font-size:10px; }
-.wp-del { padding:4px 12px; border-radius:5px; border:1.5px solid #f8717155; background:#f8717115; color:#f87171; cursor:pointer; font-size:11px; font-weight:600; font-family:inherit; }
+.wp-pos { color:var(--shg-muted, #64748b); font-size:20px; }
+.wp-del { padding:4px 12px; border-radius:5px; border:1.5px solid #f8717155; background:#f8717115; color:#f87171; cursor:pointer; font-size:20px; font-weight:600; font-family:inherit; }
 
-.save-row { display:flex; gap:6px; flex-wrap:wrap; }
-.save-btn { padding:4px 10px; border-radius:6px; border:1.5px solid var(--shg-border, #cbd5e1); background:transparent; color:var(--shg-muted, #64748b); cursor:pointer; font-size:11px; font-weight:600; font-family:inherit; white-space:nowrap; }
+details { border-top:1px solid var(--shg-border, #cbd5e1); padding-top:12px; }
+summary { cursor:pointer; font-size:20px; padding:6px 0; }
+.save-row { margin-top:12px; display:flex; gap:6px; flex-wrap:wrap; }
+.save-btn { padding:6px 10px; border-radius:4px; border:1.5px solid var(--shg-border, #cbd5e1); background:transparent; color:var(--shg-muted, #64748b); cursor:pointer; font-size:20px; font-weight:600; font-family:inherit; line-height:1.4; white-space:nowrap; }
 .save-btn:hover { border-color:#60a5fa55; color:#60a5fa; }
 
-.hint { color:var(--shg-muted, #64748b); font-size:10px; }
-.wcount { color:var(--shg-muted, #64748b); font-size:11px; }
+.hint { color:var(--shg-muted, #64748b); font-size:20px; }
+.wcount { color:var(--shg-muted, #64748b); font-size:20px; }
+
+.editor-controls { display:flex; flex-direction:column; gap:14px; padding:16px 0 0; }
+.toolbar { gap:10px; padding:0; }
+.toolbar .btn { min-height:44px; font-weight:500; }
+.toolbar > .btn:not(.danger) { flex:1; }
+.sl-row { display:grid; grid-template-columns:auto minmax(60px,1fr) 36px; gap:10px; flex:1 1 220px; padding:8px 0; }
+.sl-row input[type=range] { width:100%; }
+.toolbar .danger { font-size:18px; padding:6px 10px; }
+.hint { line-height:1.5; color:var(--shg-text); }
+.field-summary { border-top:1px solid var(--shg-border); padding-top:14px; display:flex; flex-direction:column; gap:10px; font-size:18px; line-height:1.5; }
+.legend { display:flex; flex-wrap:wrap; gap:12px 24px; }
+.legend span { display:inline-flex; align-items:center; gap:8px; }
+.legend i { display:inline-block; width:48px; height:7px; border-radius:4px; }
+#fieldStatus { color:var(--shg-muted); }
+#mapFiles { margin-top:4px; }
+.save-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.save-btn { white-space:normal; min-height:44px; font-weight:500; }
 </style>
 </head>
 <body>
 <div id="root">
-  <div class="toolbar" id="tb"></div>
   <div class="cv-outer">
     <canvas id="cvBg"></canvas>
     <canvas id="cvMain"></canvas>
@@ -70,9 +88,19 @@ input.wp-sl::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:
     <canvas id="cvOver"></canvas>
     <div id="cursor-ring"></div>
   </div>
+  <div class="editor-controls">
+  <div class="toolbar" id="tb"></div>
   <div class="well-panel" id="wellPanel"></div>
-  <div class="save-row" id="saveRow"></div>
   <div class="hint" id="hint"></div>
+  <div class="field-summary">
+    <div class="legend"><span><i style="background:linear-gradient(to right,#440154,#21908d,#fde725)"></i>Density: low to high</span>
+    <span><i style="background:#a78bfa;width:20px"></i>Painted direction</span></div>
+    <div id="fieldStatus"></div>
+  </div>
+  </div>
+  <details id="mapFiles"><summary>Save, load and export maps</summary>
+    <div class="save-row" id="saveRow"></div>
+  </details>
 </div>
 
 <script>
@@ -90,7 +118,7 @@ function autoHeight() {
 // ── State ─────────────────────────────────────────────────────────────────────
 let N=512, MODE="density";
 let densityF32=null;   // [N*N]  density 0..1
-// Vector field stored as DIRECTED unit vectors (cosθ, sinθ) — NOT double-angle.
+// Vector field stored as DIRECTED unit vectors (cosθ, sinθ) : NOT double-angle.
 // Converted to double-angle only when sending to Python.
 let vecCxF32=null;     // [N*N]  cosθ of painted fiber direction
 let vecCyF32=null;     // [N*N]  sinθ of painted fiber direction
@@ -103,7 +131,7 @@ let brushSz=36, brushStr=60;
 // Density stroke tracking
 let painting=false, lastX=-1, lastY=-1;
 
-// Vector stroke tracking — direction from consecutive mousemove positions
+// Vector stroke tracking : direction from consecutive mousemove positions
 let vecPainting=false, vecLastX=-1, vecLastY=-1;
 
 let drag=null;
@@ -131,7 +159,7 @@ function setup(){
   cvOver=document.getElementById("cvOver");
   cvVec=document.getElementById("cvVec");
   cursorRing=document.getElementById("cursor-ring");
-  // Set pixel resolution once — reassigning canvas width clears it
+  // Set pixel resolution once : reassigning canvas width clears it
   for(const c of [cvBg,cvMain,cvOver,cvVec]){ c.width=N; c.height=N; }
   mainCtx=cvMain.getContext("2d");
   vecCtx=cvVec.getContext("2d");
@@ -140,6 +168,8 @@ function setup(){
   window.addEventListener("touchend",   onWindowMouseUp, {passive:false});
   window.addEventListener("touchcancel",onWindowMouseUp, {passive:false});
   buildSaveRow();
+  document.getElementById("mapFiles").addEventListener("toggle", autoHeight);
+  new ResizeObserver(autoHeight).observe(document.getElementById("root"));
   initialized=true;
 }
 
@@ -154,8 +184,7 @@ function onRender(args){
     MODE=newMODE;
     if(MODE==="density"&&tool!=="paint"&&tool!=="erase"&&tool!=="vec") tool="paint";
     if(MODE==="wells"&&tool!=="place"&&tool!=="move"&&tool!=="del")    tool="place";
-    buildToolbar(); buildHint(); updateWellPanel(); render(); autoHeight();
-    return;
+    // Initialize persisted buffers below before drawing the new mode.
   }
 
   // First render only: load persisted state from Streamlit
@@ -212,9 +241,9 @@ function buildSaveRow(){
   const row=document.getElementById("saveRow");
   row.innerHTML="";
 
-  // SAVE — entirely client-side, no Streamlit round-trip needed
+  // SAVE : entirely client-side, no Streamlit round-trip needed
   const btnSave=document.createElement("button"); btnSave.className="save-btn";
-  btnSave.textContent="💾 Save maps";
+  btnSave.textContent="Save maps";
   btnSave.addEventListener("click",()=>{
     // Build the JSON payload in JS and trigger browser download directly
     const payload={
@@ -232,7 +261,7 @@ function buildSaveRow(){
     setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
 
-  // LOAD from file — also client-side
+  // LOAD from file : also client-side
   const fileInp=document.createElement("input"); fileInp.type="file"; fileInp.accept=".json"; fileInp.style.display="none";
   fileInp.addEventListener("change",()=>{
     const file=fileInp.files[0]; if(!file) return;
@@ -263,15 +292,15 @@ function buildSaveRow(){
   });
 
   const btnLoad=document.createElement("button"); btnLoad.className="save-btn";
-  btnLoad.textContent="📂 Load maps";
+  btnLoad.textContent="Load maps";
   btnLoad.addEventListener("click",()=>fileInp.click());
 
   const btnDlD=document.createElement("button"); btnDlD.className="save-btn";
-  btnDlD.textContent="↓ Density PNG";
+  btnDlD.textContent="Density PNG";
   btnDlD.addEventListener("click",()=>downloadFieldPNG("density"));
 
   const btnDlV=document.createElement("button"); btnDlV.className="save-btn";
-  btnDlV.textContent="↓ Vector PNG";
+  btnDlV.textContent="Direction PNG";
   btnDlV.addEventListener("click",()=>downloadFieldPNG("vector"));
 
   row.append(btnSave, fileInp, btnLoad, btnDlD, btnDlV);
@@ -333,7 +362,7 @@ function mkSep(){ const d=document.createElement("div"); d.className="sep"; retu
 function mkSlider(label,val,min,max,thumbCls,onChange){
   const row=document.createElement("div"); row.className="sl-row";
   const lbl=document.createElement("span"); lbl.className="sl-lbl"; lbl.textContent=label;
-  const inp=document.createElement("input"); inp.type="range"; inp.min=min; inp.max=max; inp.value=val;
+  const inp=document.createElement("input"); inp.type="range"; inp.setAttribute("aria-label",label); inp.min=min; inp.max=max; inp.value=val;
   if(thumbCls) inp.classList.add(thumbCls);
   const valEl=document.createElement("span"); valEl.className="sl-val"; valEl.textContent=val;
   inp.addEventListener("input",()=>{ valEl.textContent=inp.value; onChange(+inp.value); });
@@ -347,23 +376,23 @@ function buildToolbar(){
     tb.append(
       mkBtn("＋ Paint", ()=>setTool("paint"), tool==="paint"?"on-paint":""),
       mkBtn("− Erase",  ()=>setTool("erase"), tool==="erase"?"on-erase":""),
-      mkBtn("→ Vector", ()=>setTool("vec"),   tool==="vec"  ?"on-vec":  ""),
+      mkBtn("→ Direction", ()=>setTool("vec"),   tool==="vec"  ?"on-vec":  ""),
       mkSep(),
-      mkSlider("Brush", brushSz, 4, 120, null,     v=>{brushSz=v;}),
-      mkSlider("Str",   brushStr,1, 100, tool==="vec"?"purple":null, v=>{brushStr=v;}),
+      mkSlider("Brush size", brushSz, 4, 120, null,     v=>{brushSz=v;}),
+      mkSlider("Strength",   brushStr,1, 100, tool==="vec"?"purple":null, v=>{brushStr=v;}),
       mkSep(),
       mkBtn("Clear density",()=>{ densityF32.fill(0); render(); emitDensity(); },"danger"),
-      mkBtn("Clear vectors", ()=>{ vecCxF32.fill(0); vecCyF32.fill(0); vecMagF32.fill(0); render(); emitVec(); },"danger")
+      mkBtn("Clear directions", ()=>{ vecCxF32.fill(0); vecCyF32.fill(0); vecMagF32.fill(0); render(); emitVec(); },"danger")
     );
   } else {
     const cnt=document.createElement("span"); cnt.className="wcount";
-    cnt.textContent=wells.length+" well"+(wells.length!==1?"s":"");
+    cnt.textContent=wells.length+" guide"+(wells.length!==1?"s":"");
     tb.append(
       mkBtn("＋ Place",  ()=>setTool("place"), tool==="place"?"on-place":""),
       mkBtn("↖ Move",   ()=>setTool("move"),  tool==="move" ?"on-move" :""),
       mkBtn("✕ Delete", ()=>setTool("del"),   tool==="del"  ?"on-del"  :""),
       cnt,
-      mkBtn("Clear all",()=>{ wells=[];selWell=-1;wellsOwned=true;updateWellPanel();render();emitWells();buildToolbar(); },"danger")
+      mkBtn("Clear guides",()=>{ wells=[];selWell=-1;wellsOwned=true;updateWellPanel();render();emitWells();buildToolbar(); },"danger")
     );
   }
 }
@@ -378,12 +407,12 @@ function setTool(t){
 
 function buildHint(){
   document.getElementById("hint").textContent=({
-    paint:"Paint density — successive strokes accumulate.",
+    paint:"Paint to increase density. Repeated strokes add more fibers.",
     erase:"Erase density.",
     vec:  "Drag to paint fiber orientation. The direction you drag is the fiber direction.",
-    place:"Click to place an orientation well.",
+    place:"Click to add an elliptical guide. Nearby fibers follow its edge.",
     move: "Drag to reposition. Click to select and inspect.",
-    del:  "Click a well to delete it.",
+    del:  "Click a guide to delete it.",
   })[tool]||"";
 }
 
@@ -392,7 +421,7 @@ function updateWellPanel(){
   const panel=document.getElementById("wellPanel");
   if(selWell<0||MODE!=="wells"){panel.classList.remove("show");autoHeight();return;}
   const w=wells[selWell];
-  panel.innerHTML=`<div class="wp-title">Well ${selWell+1}</div>`;
+  panel.innerHTML=`<div class="wp-title">Guide ${selWell+1}</div>`;
   panel.classList.add("show");
   const grid=document.createElement("div"); grid.className="wp-grid";
   [["rx","Radius X",8,160],["ry","Radius Y",8,160],["angle","Angle °",0,179]].forEach(([key,lbl,mn,mx])=>{
@@ -428,7 +457,11 @@ let imgData=null;
 
 function render(){
   if(!mainCtx||!densityF32) return;
-  // Density → viridis, no normalization — brightness reflects absolute painted values
+  const paintedDensity=densityF32.some(v=>v>0.001);
+  const paintedDirection=vecMagF32.some(v=>v>0.001);
+  document.getElementById("fieldStatus").textContent=
+    `Density: ${paintedDensity?"painted":"uniform"} · Direction: ${paintedDirection?"painted":"generated"} · Guides: ${wells.length}`;
+  // Density → viridis, no normalization : brightness reflects absolute painted values
   if(!imgData||imgData.width!==N) imgData=new ImageData(N,N);
   const d=imgData.data;
   for(let i=0;i<N*N;i++){
@@ -550,7 +583,7 @@ function strokeDensityTo(x1,y1){
   lastX=x1;lastY=y1;
 }
 
-// Vector brush — direction comes from instantaneous movement (lastVec → current)
+// Vector brush : direction comes from instantaneous movement (lastVec → current)
 function applyVecBrush(px,py, dirX,dirY){
   const len=Math.hypot(dirX,dirY);
   if(len<0.5) return; // no direction info yet
@@ -590,7 +623,7 @@ function strokeVecTo(x1,y1){
   const steps=Math.max(1,Math.ceil(dist/(Math.max(1,brushSz)*0.35)));
   for(let i=1;i<=steps;i++){
     const sx=vecLastX+dx*(i/steps), sy=vecLastY+dy*(i/steps);
-    // Each sub-step uses the same direction (dx,dy) — the direction of this segment
+    // Each sub-step uses the same direction (dx,dy) : the direction of this segment
     applyVecBrush(sx,sy,dx,dy);
   }
   vecLastX=x1; vecLastY=y1;
@@ -620,7 +653,7 @@ function touchPoint(e){ const t=e.touches[0]||e.changedTouches[0]; return{client
 let moveLastX=-1, moveLastY=-1, moveDirX=1, moveDirY=0;
 
 function attachEvents(cv){
-  // ── Touch wrappers — preventDefault stops scroll; then reuse mouse logic ──
+  // ── Touch wrappers : preventDefault stops scroll; then reuse mouse logic ──
   cv.addEventListener("touchstart", e=>{
     e.preventDefault();          // ← stops parent scroll / pinch-zoom
     onPointerDown(touchPoint(e));
@@ -662,7 +695,7 @@ function onPointerDown(e){
     if(MODE==="density"){
       if(tool==="vec"){
         vecPainting=true; vecLastX=-1; vecLastY=-1;
-        // Don't apply on mousedown — wait for first movement to get a direction
+        // Don't apply on mousedown : wait for first movement to get a direction
       } else {
         painting=true; lastX=-1; lastY=-1;
         strokeDensityTo(x,y); render();
@@ -702,7 +735,7 @@ function onPointerMove(e){
         if(vecPainting){
           strokeVecTo(x,y);
           render();
-          // Redraw cursor on top (render cleared the vec canvas indirectly — actually vec is separate)
+          // Redraw cursor on top (render cleared the vec canvas indirectly : actually vec is separate)
           drawVecCursorAt(x,y,moveDirX,moveDirY);
         }
       } else {
@@ -710,8 +743,8 @@ function onPointerMove(e){
         cursorRing.style.display="block";
         cursorRing.style.left=x*sc+"px"; cursorRing.style.top=y*sc+"px";
         cursorRing.style.width=brushSz*2*sc+"px"; cursorRing.style.height=brushSz*2*sc+"px";
-        cursorRing.style.borderColor=tool==="erase"?"#f8717188":"#cc154388";
-        cursorRing.style.background =tool==="erase"?"#f8717110":"#cc154310";
+        cursorRing.style.borderColor=tool==="erase"?"#f8717188":"#c5050c88";
+        cursorRing.style.background =tool==="erase"?"#f8717110":"#c5050c10";
         if(painting){strokeDensityTo(x,y);render();}
       }
     } else {
