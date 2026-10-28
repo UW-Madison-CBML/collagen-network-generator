@@ -103,8 +103,6 @@ def generate_custom_fields_from_canvas(
 
     return D, wells, hard_zero_mask
 
-RESOLUTION_FACTOR = 2.0
-
 def upsample_canvas(arr_flat, canvas_size, target_shape):
     """Upsample a flat canvas array to match the simulation grid shape."""
     arr_2d = arr_flat.reshape(canvas_size, canvas_size).astype(np.float64)
@@ -126,7 +124,7 @@ _ss("shg_Qy",       None)
 _ss("active_params",{})
 _ss("num_fibers",   300)
 _ss("spline_length",150)
-_ss("thickness",    2.5)
+_ss("thickness",    2.0)
 _ss("G_align",      0.50)
 _ss("L_align",      0.50)
 _ss("G_curve",      0.30)
@@ -140,6 +138,8 @@ _ss("show_splines", True)
 _ss("show_quiver",  False)
 _ss("wave_amplitude_px", 2.8)
 _ss("wave_wavelength_px", None)
+
+# _ss("raster_size", 512)
 
 _ss("n_layers",  1)
 _ss("depth", 1.0)
@@ -275,7 +275,9 @@ st.markdown("""
 _COMP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "canvas_component")
 _canvas_fn = components.declare_component("shg_canvas", path=_COMP_DIR)
 
+# SyntheticGen.py has CANVAS_SIZE=256 and RESOLUTION_FACTOR=4
 CANVAS_SIZE = 512
+RESOLUTION_FACTOR = 2.0
 
 _z = lambda: np.zeros(CANVAS_SIZE * CANVAS_SIZE, dtype=np.float32)
 _ss("density_arr",  _z())
@@ -440,12 +442,12 @@ with col_left:
     with editor_actions:
         tc1, tc2 = st.columns(2, gap="small")
         with tc1:
-            if st.button("Paint fields", use_container_width=True,
+            if st.button("Paint fields", width='stretch',
                          type="primary" if st.session_state.active_tab=="density" else "secondary"):
                 if st.session_state.active_tab != "density":
                     st.session_state.active_tab = "density"; st.rerun()
         with tc2:
-            if st.button("Fiber guides", use_container_width=True,
+            if st.button("Fiber guides", width='stretch',
                          type="primary" if st.session_state.active_tab=="wells" else "secondary"):
                 if st.session_state.active_tab != "wells":
                     st.session_state.active_tab = "wells"; st.rerun()
@@ -490,26 +492,30 @@ with col_left:
 # Mapped from legacy synthetic_class_params. Fields not present in current UI
 # (G_density, L_density, G_conn) are stored but not used by sliders.
 # spline_num  → num_fibers
-# fiber_width_px → thickness (default 2.5 kept where not specified)
+# fiber_width_px → thickness (default 2.0 kept where not specified)
+# "G_density" Not needed be because painting density
+# "G_conn" No longer used in generate_synthetic_shg
 
 PRESETS = {
 
     #syn.generate_synthetic_shg(seed=11, G_align=0.7, G_density=0.7, G_curve=0.5, G_conn=1, L_align=0.6, L_density=0, L_conn=0.3, L_curve=0, L_intensity=0.5, spline_length=50, spline_num=1200)
+    #spline_num=num_fibers
     #
     "RED": {
         "label": "Aligned short fibers",
         "color": "#f87171",
         "desc":  "1,200 short fibers with strong overall alignment and moderate broad curvature.",
         "params": {
+            "seed":          11,
             "G_align":       0.7,
             "L_align":       0.6,
             "G_curve":       0.5,
             "L_curve":       0.0,
             "L_conn":        0.3,
-            "L_wave_freq":   0.25,
+            "L_wave_freq":   0.5,
             "num_fibers":    1200,
             "spline_length": 50,
-            "thickness":     2.5,
+            "thickness":     2.0,
         },
     },
     "YELLOW_BAD": { # syn.generate_synthetic_shg(seed=10, G_align=0.4, G_density=0.7, G_curve=0, G_conn=1, L_align=0.3, L_density=0.4, L_conn=1, L_curve=0, spline_length=60, spline_num=1200)
@@ -518,15 +524,16 @@ PRESETS = {
         "color": "#fbbf24",
         "desc":  "1,200 short fibers with weaker alignment and little added waviness.",
         "params": {
+            "seed":          10,
             "G_align":       0.4,
             "L_align":       0.3,
             "G_curve":       0.0,
             "L_curve":       0.0,
             "L_conn":        1.0,
-            "L_wave_freq":   0.25,
+            "L_wave_freq":   0.5,
             "num_fibers":    1200,
             "spline_length": 60,
-            "thickness":     2.5,
+            "thickness":     2.0,
         },
     },
     "YELLOW_GOOD": {# syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=0.7, G_conn=1, L_align=1, L_density=0.6, L_conn=0.3, L_curve=0, spline_length=70, spline_num=1200)
@@ -534,15 +541,16 @@ PRESETS = {
         "color": "#fde68a",
         "desc":  "800 fibers with broad curvature and strong following of the underlying direction field.",
         "params": {
+            "seed":          10,
             "G_align":       0.2,
             "L_align":       1.0,
             "G_curve":       0.7,
             "L_curve":       0.0,
             "L_conn":        0.3,
-            "L_wave_freq":   0.25,
+            "L_wave_freq":   0.5,
             "num_fibers":    800,   # capped at slider max 800 (orig 3000)
             "spline_length": 70,
-            "thickness":     2.5,
+            "thickness":     2.0,
         },
     },
     "INTERESTING": { # syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=1, G_conn=1, L_align=0.6, L_density=0.55, L_conn=1, L_curve=0, spline_length=40, spline_num=3000)
@@ -550,15 +558,16 @@ PRESETS = {
         "color": "#a78bfa",
         "desc":  "3,000 short fibers with strong broad curvature and weak overall alignment.",
         "params": {
+            "seed":          10,
             "G_align":       0.2,
             "L_align":       0.6,
             "G_curve":       1.0,
             "L_curve":       0.0,
             "L_conn":        1.0,
-            "L_wave_freq":   0.25,
+            "L_wave_freq":   0.5,
             "num_fibers":    3000,
             "spline_length": 40,
-            "thickness":     2.5,
+            "thickness":     2.0,
         },
     },
     "CYAN": { #syn.generate_synthetic_shg(seed=10, G_align=0.95, G_density=0.7, G_curve=0, G_conn=1, L_align=0.6, L_density=0.4, L_conn=1, L_curve=0.6, spline_length=60, spline_num=1200, wave_amplitude_px=6, wave_wavelength_px=30, L_wave_freq=0.5)
@@ -567,15 +576,18 @@ PRESETS = {
         "color": "#22d3ee",
         "desc":  "1,200 short fibers with strong overall alignment and more local waviness.",
         "params": {
+            "seed":          10,
             "G_align":       0.95,
             "L_align":       0.6,
             "G_curve":       0.0,
             "L_curve":       0.6,
             "L_conn":        1.0,
-            "L_wave_freq":   0.25,
+            "L_wave_freq":   0.5,
             "num_fibers":    1200,
             "spline_length": 60,
-            "thickness":     2.5,
+            "thickness":     2.0,
+            "wave_amplitude_px": 6,
+            "wave_wavelength_px": 30
         },
     },
     # "ORANGE": {
@@ -597,7 +609,8 @@ PRESETS = {
 }
 
 PARAMETER_KEYS = ("num_fibers", "spline_length", "thickness", "G_align", "L_align",
-                  "G_curve", "L_curve", "L_wave_freq", "n_layers", "depth", "focal_plane", "seed")
+                  "G_curve", "L_curve", "L_wave_freq", "n_layers", "depth", "focal_plane", "seed",
+                  "wave_wavelength_px", "wave_amplitude_px")
 
 def apply_preset(key):
     p = PRESETS[key]["params"]
@@ -623,7 +636,7 @@ with settings_area:
             with preset_button:
                 st.button(preset["label"], key="preset_" + preset_key,
                           type="primary" if selected_preset == preset_key and not preset_modified else "secondary",
-                          on_click=apply_preset, args=(preset_key,), use_container_width=True)
+                          on_click=apply_preset, args=(preset_key,), width='stretch')
             with preset_help:
                 preset_description(preset["label"], preset["desc"])
 
@@ -668,7 +681,7 @@ with settings_area:
 # ══════════════════════════════════════════════════════════════════════════════
 with col_mid:
     with output_actions:
-        render_btn = st.button("Render image", type="primary", use_container_width=True)
+        render_btn = st.button("Render image", type="primary", width='stretch')
 
     output_slot = st.empty()
     if render_btn:
@@ -677,40 +690,6 @@ with col_mid:
             rng   = np.random.default_rng(int(st.session_state.seed))
             X, Y  = create_grid(CANVAS_SIZE, resolution_factor=RESOLUTION_FACTOR)
             shape = X.shape
-
-            # well_configs = [{"x":w["x"],"y":w["y"],"w":w.get("rx",45),"h":w.get("ry",28),"angle":w.get("angle",0)}
-            #                 for w in st.session_state.wells]
-            # _, wells_arr, hard_mask = generate_custom_fields_from_canvas(
-            #     density_configs=[], well_configs=well_configs, shape=shape)
-
-            # D_raw = st.session_state.density_arr.reshape(CANVAS_SIZE, CANVAS_SIZE).astype(np.float64)
-            # if D_raw.max() < 1e-4: D_raw = np.full((CANVAS_SIZE, CANVAS_SIZE), 0.3)
-            # D = np.where(hard_mask, 0.0, D_raw)
-
-            # # Global orientation field
-            # # base_field = np.atan2(st.session_state.vec_qx_arr,st.session_state.vec_qy_arr)
-            # # basex = np.array(st.session_state.vec_qx_arr)
-            # # basey = np.array(st.session_state.vec_qy_arr)
-            # # basemag = np.array(st.session_state.vec_mag_arr)
-            # # basex = basex.reshape(CANVAS_SIZE,CANVAS_SIZE)
-            # # basey = basey.reshape(CANVAS_SIZE,CANVAS_SIZE)
-            # # basemag = basemag.reshape(CANVAS_SIZE,CANVAS_SIZE)
-            # # Qx_g, Qy_g = make_global_orientation(shape, st.session_state.G_align, st.session_state.G_curve, rng,
-            # #                                      basex=basex,
-            # #                                      basey =basey,
-            # #                                      basemag = basemag
-            # #                                     )
-
-            # Qx_g, Qy_g = make_global_orientation(shape, st.session_state.G_align, st.session_state.G_curve, rng,)
-            
-            # print(Qx_g.shape, Qy_g.shape)
-            # # Blend with user-painted vector field
-            # Qx_g, Qy_g = blend_orientation(
-            #     Qx_g, Qy_g,
-            #     st.session_state.vec_qx_arr,
-            #     st.session_state.vec_qy_arr,
-            #     st.session_state.vec_mag_arr,
-            # )
             
             D_raw = upsample_canvas(st.session_state.density_arr, CANVAS_SIZE, shape)
             if D_raw.max() < 1e-4:
@@ -719,6 +698,11 @@ with col_mid:
             vec_qx_up  = upsample_canvas(st.session_state.vec_qx_arr,  CANVAS_SIZE, shape)
             vec_qy_up  = upsample_canvas(st.session_state.vec_qy_arr,  CANVAS_SIZE, shape)
             vec_mag_up = upsample_canvas(st.session_state.vec_mag_arr,  CANVAS_SIZE, shape)
+
+            # vec_qx_up = vec_qx_up.T
+            # vec_qy_up = vec_qy_up.T
+            # vec_mag_up = vec_mag_up.T
+
             # Re-normalize the upsampled Q-field (bilinear interp breaks unit length)
             vec_q_norm = np.sqrt(vec_qx_up**2 + vec_qy_up**2)
             vec_q_norm = np.where(vec_q_norm < 1e-8, 1.0, vec_q_norm)
@@ -754,9 +738,9 @@ with col_mid:
 
             # Well influence
             if len(wells_arr) > 0:
-                Qx_w, Qy_w, influence = _well_weight_and_tangent(X, Y, wells_arr, Qx_g, Qy_g)
+                Qx_w, Qy_w, influence = _well_weight_and_tangent(X, Y, wells_arr, Qx_g, Qy_g) # used in make_well_orientation
             else:
-                Qx_w = Qy_w = np.zeros(shape); influence = np.zeros(shape)
+                Qx_w = Qy_w = np.zeros(shape); influence = np.zeros(shape) # No wells
 
             Qx, Qy = relax(Qx_g, Qy_g, Qx_g, Qy_g, Qx_w, Qy_w, influence,
                            D, st.session_state.G_align, st.session_state.L_align, wells_arr, X, Y)
@@ -764,41 +748,69 @@ with col_mid:
             curve_field, conn_field = make_fiber_aux_fields(shape, st.session_state.L_curve, st.session_state.L_conn, rng)
             wave_freq_field = make_wave_freq_field(shape, st.session_state.L_wave_freq, rng)
 
-            # wave_amplitude_px = int(st.session_state.wave_amplitude_px)
-            # wave_wavelength_px = int(st.session_state.wave_wavelength_px)
+            wave_amplitude_px = float(st.session_state.wave_amplitude_px)
+            wave_wavelength_px = float(st.session_state.wave_wavelength_px) if st.session_state.wave_wavelength_px else None
 
             num_fibers    = int(st.session_state.num_fibers)
             spline_length = int(st.session_state.spline_length)
+
             seeds         = sample_seeds_from_density(D, num_fibers, L_density=0.5, rng=rng)
             aux_curve     = sample_field_at_seeds(seeds, curve_field)
             aux_conn      = sample_field_at_seeds(seeds, conn_field)
             aux_wave_freq = sample_field_at_seeds(seeds, wave_freq_field)
 
-            splines = []
-            for i, seed_pt in enumerate(seeds):
-                raw = generate_fiber(Qx, Qy, seed_pt, step_size=1.0, spline_length=spline_length,
-                                     L_curve=st.session_state.L_curve, susceptibility=st.session_state.L_align, rng=rng)
-                off = sinusoidal_fiber_offset(
-                    raw, wave_amp=aux_curve[i], wave_freq=aux_wave_freq[i], 
-                    # wave_amplitude_px=wave_amplitude_px,
-                    # wave_wavelength_px=wave_wavelength_px,
-                    rng=rng
-                )
-                smoothing = 0.8 + 5.0 * (1 - st.session_state.L_curve)
-                num_samples = max(100, int(4 * spline_length))
-                splines.append(fit_spline(off, smoothing= smoothing, num_samples=num_samples))
+            # Added 10/28/2026 - Levi
+            H, Wpx = Qx.shape
+            susceptibility_bias = st.session_state.L_align
+            aux_susceptibility = per_spline_auxiliary_values(susceptibility_bias, len(seeds), rng)
+            aux_L_curve, aux_L_conn = sample_aux_at_seeds(seeds, curve_field, conn_field)
+            aux_L_wave_freq = sample_field_at_seeds(seeds, wave_freq_field)
 
-            splines_np = np.array(splines, dtype=object)
+            splines = [
+                sinusoidal_fiber_offset(
+
+                    generate_fiber(
+                        Qx, Qy, s, step_size=1.0, spline_length=spline_length, L_curve=st.session_state.L_curve,
+                        susceptibility=aux_susceptibility[i], rng=rng,
+                    ),
+                    wave_amplitude_px=wave_amplitude_px,
+                    wave_wavelength_px=wave_wavelength_px,
+                    wave_amp=aux_L_curve[i],
+                    wave_freq=aux_L_wave_freq[i],
+                    rng=rng,
+                )
+                for i, s in enumerate(seeds)
+            ]
+
+            smoothing = 0.8 + 5.0 * (1 - st.session_state.L_curve)
+            num_samples = max(100, int(4 * spline_length))
+
+            fit_splines = [fit_spline(f, smoothing=smoothing, num_samples=num_samples) for f in splines]
+            # raster_splines = [np.asarray(s)[:, ::-1] for s in fit_splines]
+            splines_np = np.array(fit_splines, dtype=object)
             layers = np.array_split(splines_np, st.session_state.n_layers, axis=0)
 
+            # Defaults None in rasterize_splines
+            # opacity_rng = np.random.default_rng(int(st.session_state.seed) + 1234)
+            # opacity_table = opacity.build_fiber_opacity_table(len(fit_splines), opacity_rng)
+
             imgs = [
-                rasterize_splines(H=shape[0], W=shape[1], splines=l,
-                                       thickness=float(st.session_state.thickness),
-                                       aux_L_conn=aux_conn, intensity_seed=int(st.session_state.seed))
-                for i, l in enumerate(layers)
+                rasterize_splines( # modulate=False
+                    H,
+                    Wpx,
+                    splines=l,
+                    thickness=float(st.session_state.thickness), #add to gui
+                    oversample=4.0,
+                    out_H=CANVAS_SIZE, #st.session_state.raster_size, #add to gui
+                    out_W=CANVAS_SIZE, #st.session_state.raster_size, #add to gui
+                    # L_conn=st.session_state.L_conn, #not used in the function
+                    aux_L_conn=aux_L_conn,
+                    # opacity_table=opacity_table,
+                ) for i, l in enumerate(layers)
             ]
 
             raster = np.zeros_like(imgs[0])
+            # raster = np.transpose(raster)
             for i, img in enumerate(imgs):
                 d_val = i*st.session_state.depth/st.session_state.n_layers
                 defocus = abs(d_val - st.session_state.focal_plane*st.session_state.depth)
@@ -807,18 +819,22 @@ with col_mid:
                 raster += gaussian_filter(img, sigma=sigma)
 
             st.session_state.shg_image   = raster
-            st.session_state.shg_splines = splines
+            st.session_state.shg_splines = fit_splines
             st.session_state.shg_D       = D
             st.session_state.shg_Qx      = Qx
             st.session_state.shg_Qy      = Qy
             st.session_state.shg_grid_size = shape[0]
+
             st.session_state.active_params = dict(
                 seed=int(st.session_state.seed), num_fibers=num_fibers,
                 spline_length=spline_length, thickness=float(st.session_state.thickness),
                 G_align=float(st.session_state.G_align), L_align=float(st.session_state.L_align),
                 G_curve=float(st.session_state.G_curve), L_curve=float(st.session_state.L_curve),
                 L_conn=float(st.session_state.L_conn), L_wave_freq=float(st.session_state.L_wave_freq),
-                n_wells=len(st.session_state.wells), vec_painted=has_v,
+                n_wells=len(st.session_state.wells), 
+                wave_amplitude_px=wave_amplitude_px,
+                wave_wavelength_px=wave_wavelength_px,
+                vec_painted=has_v,
             )
 
     with output_slot.container():
@@ -827,7 +843,7 @@ with col_mid:
             image_tab, paths_tab = st.tabs(["SHG image", "Fiber paths"])
             with image_tab:
                 img_arr = st.session_state.shg_image
-                st.image(img_arr, clamp=True, use_container_width=True)
+                st.image(img_arr, clamp=True, width='stretch')
 
                 c1, c2 = st.columns(2, gap="small")
                 with c1:
@@ -836,13 +852,13 @@ with col_mid:
                     buf = io.BytesIO(); Image.fromarray(norm).save(buf,format="PNG")
                     st.download_button("↓ SHG PNG", data=buf.getvalue(),
                         file_name=f"shg_{st.session_state.active_params.get('seed',0)}.png",
-                        mime="image/png", use_container_width=True)
+                        mime="image/png", width='stretch')
                 with c2:
                     st.download_button("↓ Splines JSON",
                         data=json.dumps({"parameters":st.session_state.active_params,
                                          "splines":[s.tolist() for s in (st.session_state.shg_splines or [])]},indent=2),
                         file_name=f"shg_splines_{st.session_state.active_params.get('seed',0)}.json",
-                        mime="application/json", use_container_width=True)
+                        mime="application/json", width='stretch')
 
                 with st.expander("Rendered parameters"):
                     st.json(st.session_state.active_params)
@@ -864,7 +880,7 @@ with col_mid:
                     show_splines=st.session_state.preview_splines,
                 )
                 fig.tight_layout(pad=0)
-                st.pyplot(fig, use_container_width=True)
+                st.pyplot(fig, width='stretch')
                 plt.close(fig)
 
                 st.caption("Colors distinguish paths; they do not represent a measured property.")
@@ -891,7 +907,7 @@ with col_mid:
                     buf2 = io.BytesIO(); fig2.savefig(buf2,format="png",bbox_inches="tight",pad_inches=0,facecolor="#0d1117")
                     plt.close(fig2); buf2.seek(0)
                     st.download_button("↓ Preview PNG", data=buf2.getvalue(),
-                        file_name="fiber_paths.png", mime="image/png", use_container_width=True)
+                        file_name="fiber_paths.png", mime="image/png", width='stretch')
                 with c4:
                     # Download vector field as numpy
                     vf_export = {
@@ -900,7 +916,7 @@ with col_mid:
                         "shape": list(st.session_state.shg_Qx.shape),
                     }
                     st.download_button("↓ Vector JSON", data=json.dumps(vf_export),
-                        file_name="vector_field.json", mime="application/json", use_container_width=True)
+                        file_name="vector_field.json", mime="application/json", width='stretch')
         else:
             st.markdown("""
             <div class="output-empty">Select Render image to generate an SHG image.<br>
