@@ -37,6 +37,7 @@ def img_to_base64(path):
         return base64.b64encode(f.read()).decode()
 
 LOGO_B64 = img_to_base64(os.path.join(current_dir, "assets", "uw-logo-vertical-color-web-digital.png"))
+CBML_LOGO_B64 = img_to_base64(os.path.join(current_dir, "assets", "cbml-logo.png"))
 LOGO_B64_horizontal = img_to_base64(os.path.join(current_dir, "assets", "uw-logo-horizontal-color-web-digital.png"))
 
 def generate_custom_fields_from_canvas(
@@ -163,7 +164,17 @@ st.markdown(f"""
   gap:24px; flex-wrap:wrap; border-bottom:3px solid #c5050c; padding-bottom:20px; margin-bottom:20px; }}
 .research-header h1 {{ font-size:32px; font-weight:600; padding:0; margin:0; line-height:1.25; }}
 .research-header p {{ margin:6px 0 0; font-size:16px; color:var(--shg-muted); }}
-.research-header img {{ width:190px; height:auto; }}
+.research-header .uw-logo {{ width:190px; height:auto; }}
+.research-brand {{ display:flex; align-items:center; gap:20px; }}
+.research-header .cbml-link {{ width:96px; height:96px; overflow:hidden; }}
+.research-header .cbml-logo {{ width:104px; height:104px; max-width:none; margin:-4px; object-fit:contain; }}
+.research-header a {{ display:inline-flex; flex-shrink:0; }}
+.research-header a:focus-visible, .research-footer a:focus-visible {{ outline:3px solid #c5050c; outline-offset:4px; }}
+.research-footer {{ margin-top:32px; padding-top:20px; border-top:1px solid var(--shg-border);
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;
+  font-size:16px; line-height:1.6; color:var(--shg-muted); }}
+.research-footer strong {{ color:var(--shg-text); font-weight:600; }}
+.research-footer a {{ color:#a00000; text-decoration:underline; text-underline-offset:3px; }}
 [data-testid="stHeadingWithActionElements"] h3 {{ font-size:24px; font-weight:650; padding-top:0; }}
 [data-testid="stExpander"] summary p {{ font-size:17px!important; font-weight:600; }}
 [data-testid="stCaptionContainer"] p {{ font-size:16px; line-height:1.5; color:var(--shg-muted); }}
@@ -192,12 +203,22 @@ button[aria-label^="Help for"] svg {{ width:22px; height:22px; }}
 @media (max-width:900px) {{
   [data-testid="stMainBlockContainer"] {{ padding:4.5rem 1rem 2rem; }}
   .research-header h1 {{ font-size:26px; }}
-  .research-header img {{ width:160px; }}
+  .research-header .uw-logo {{ width:160px; }}
+  .research-header .cbml-link {{ width:76px; height:76px; }}
+  .research-header .cbml-logo {{ width:84px; height:84px; }}
+  .research-brand {{ gap:12px; }}
 }}
 </style>
 <header class="research-header">
   <div><h1>SHG Fiber Simulator</h1><p>Bhaskar Lab · Computational Biology &amp; Machine Learning</p></div>
-  <img src="data:image/png;base64,{LOGO_B64_horizontal}" alt="University of Wisconsin–Madison">
+  <div class="research-brand">
+    <a class="cbml-link" href="https://github.com/UW-Madison-CBML" target="_blank" rel="noopener noreferrer" aria-label="CBML lab on GitHub">
+      <img class="cbml-logo" src="data:image/png;base64,{CBML_LOGO_B64}" alt="CBML">
+    </a>
+    <a href="https://www.wisc.edu/" target="_blank" rel="noopener noreferrer" aria-label="University of Wisconsin-Madison website">
+      <img class="uw-logo" src="data:image/png;base64,{LOGO_B64_horizontal}" alt="University of Wisconsin-Madison">
+    </a>
+  </div>
 </header>
 """, unsafe_allow_html=True)
 
@@ -946,11 +967,7 @@ with col_mid:
             </div>""", unsafe_allow_html=True)
         
 st.markdown("""
-<div style="margin-top:32px;padding-top:12px;border-top:1px solid var(--shg-border);
-     display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <span style="color:var(--shg-muted);font-size:16px">
-    © Bhaskar Lab · Computational Biology &amp; Machine Learning · University of Wisconsin–Madison
-  </span>
-  <span style="color:#cc1543;font-size:16px;font-weight:600">CBML</span>
-</div>
+<footer class="research-footer">
+  <div>© Bhaskar Lab · Computational Biology &amp; Machine Learning · University of Wisconsin-Madison</div>
+</footer>
 """, unsafe_allow_html=True)
