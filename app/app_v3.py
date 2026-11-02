@@ -630,15 +630,37 @@ with settings_area:
     with parameter_actions:
         st.markdown(f'<div class="preset-status" role="status" aria-live="polite"><span class="status-label">Current:</span><span class="status-value" title="{escape(status, quote=True)}">{escape(status)}</span></div>', unsafe_allow_html=True)
     with st.expander("Custom presets", expanded=False):
-        st.caption("Select a preset to apply it. Painted fields and guides are kept.")
-        for preset_key, preset in PRESETS.items():
-            preset_button, preset_help = st.columns([8, 1], gap="small")
-            with preset_button:
-                st.button(preset["label"], key="preset_" + preset_key,
-                          type="primary" if selected_preset == preset_key and not preset_modified else "secondary",
-                          on_click=apply_preset, args=(preset_key,), width='stretch')
-            with preset_help:
-                preset_description(preset["label"], preset["desc"])
+        st.caption("Select an image to apply a preset. Hover for details. Painted fields and guides are kept.")
+        preset_items = list(PRESETS.items())
+        for row_start in range(0, len(preset_items), 2):
+            tiles = st.columns(2, gap="small")
+            for offset, (preset_key, preset) in enumerate(preset_items[row_start:row_start + 2]):
+                number = row_start + offset + 1
+                active = selected_preset == preset_key and not preset_modified
+                # Replace these numbered placeholders with supplied preset images.
+                placeholder = f'''<svg xmlns="http://www.w3.org/2000/svg" width="240" height="180" viewBox="0 0 240 180">
+                  <rect width="240" height="180" fill="#f4f4f4"/>
+                  <rect x="100" y="30" width="40" height="32" rx="3" fill="none" stroke="#777" stroke-width="2"/>
+                  <circle cx="111" cy="40" r="3" fill="#777"/>
+                  <path d="M103 58l10-10 8 7 8-12 8 15" fill="none" stroke="#777" stroke-width="2"/>
+                  <text x="120" y="100" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#333">Preset {number}</text>
+                </svg>'''
+                image_data = base64.b64encode(placeholder.encode()).decode()
+                tile_class = "st-key-preset_tile_" + preset_key
+                st.markdown(f'''<style>
+                  .{tile_class} button {{ width:100%; height:150px; padding:0;
+                    background:#f4f4f4 url("data:image/svg+xml;base64,{image_data}") center/contain no-repeat!important;
+                    border:{'3px solid #c5050c' if active else '1px solid #b8b8b8'}!important; border-radius:5px; }}
+                  .{tile_class} button:hover {{ border-color:#c5050c!important; box-shadow:0 0 0 1px #c5050c; }}
+                  .{tile_class} button:focus-visible {{ outline:3px solid #c5050c; outline-offset:3px; }}
+                  .{tile_class} button p {{ position:absolute; width:1px; height:1px; overflow:hidden;
+                    clip-path:inset(50%); white-space:nowrap; }}
+                </style>''', unsafe_allow_html=True)
+                with tiles[offset], st.container(key="preset_tile_" + preset_key):
+                    st.button(preset["label"] + (" (selected)" if active else ""),
+                              key="preset_" + preset_key,
+                              help=preset["label"] + ": " + preset["desc"],
+                              on_click=apply_preset, args=(preset_key,), width="stretch")
 
     with parameter_group("Fiber", "Set the number, length and thickness of fibers."):
         parameter_slider("Fiber count", 20, 3000, step=10, key="num_fibers",
