@@ -399,7 +399,7 @@ function buildToolbar(){
       mkBtn("→ Direction", ()=>setTool("vec"),   tool==="vec"  ?"on-vec":  ""),
       mkSep(),
       mkSlider("Radius (px)", brushSz, 4, Math.floor(N/2), null,     v=>{brushSz=v;}),
-      mkSlider("Strength (%)",   brushStr,40, 100, null, v=>{brushStr=v;}),
+      mkSlider("Strength (%)",   brushStr,1, 100, null, v=>{brushStr=v;}),
       mkSep(),
       mkBtn("Clear density",()=>{ densityF32.fill(0); render(); emitDensity(); },"danger"),
       mkBtn("Clear directions", ()=>{ vecCxF32.fill(0); vecCyF32.fill(0); vecMagF32.fill(0); render(); emitVec(); },"danger")
