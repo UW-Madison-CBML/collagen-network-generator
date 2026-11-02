@@ -77,6 +77,26 @@ summary { cursor:pointer; font-size:16px; padding:6px 0; }
 #mapFiles { margin-top:4px; }
 .save-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
 .save-btn { white-space:normal; min-height:44px; font-weight:500; }
+
+/* Editor controls share the application typography and accent. */
+.btn.on-place, .btn.on-move, .btn.on-del { border-color:#c5050c; background:#c5050c12; color:#c5050c; }
+.well-panel { background:var(--shg-bg,#fff); border:1px solid var(--shg-border,#ccc);
+  border-radius:4px; padding:12px; gap:10px; }
+.wp-title { color:var(--shg-text,#222); font-size:17px; font-weight:600; }
+.wp-description { color:var(--shg-muted,#555); font-size:16px; line-height:1.5; }
+.wp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 20px; padding:4px 0 6px; }
+.wp-row { gap:10px; padding-bottom:4px; }
+.wp-head { align-items:baseline; gap:16px; line-height:1.5; }
+.wp-head .lbl { color:var(--shg-text,#222); }
+.wp-head .val { min-width:36px; text-align:right; }
+input.wp-sl::-webkit-slider-thumb { background:#c5050c; }
+input[type=range]::-moz-range-thumb { width:16px; height:16px; border:0; border-radius:50%; background:#c5050c; }
+input[type=range]:focus-visible, button:focus-visible { outline:2px solid #c5050c; outline-offset:5px; }
+.wp-footer { flex-wrap:wrap; gap:12px; padding-top:10px; margin-top:0; }
+.wp-del { color:#a00000; background:transparent; border:1px solid var(--shg-border,#ccc);
+  border-radius:4px; min-height:44px; padding:8px 12px; font-weight:500; }
+.wp-del:hover { border-color:#c5050c; background:#c5050c0a; }
+.sl-row { grid-template-columns:auto minmax(50px,1fr) 30px; gap:8px; flex:1 1 210px; padding:6px 0; }
 </style>
 </head>
 <body>
@@ -126,7 +146,7 @@ let vecMagF32=null;    // [N*N]  accumulated paint weight 0..1
 let wells=[];
 let selWell=-1, hovWell=-1;
 let tool="paint";
-let brushSz=36, brushStr=60;
+let brushSz=72, brushStr=60;
 
 // Density stroke tracking
 let painting=false, lastX=-1, lastY=-1;
@@ -378,8 +398,8 @@ function buildToolbar(){
       mkBtn("− Erase",  ()=>setTool("erase"), tool==="erase"?"on-erase":""),
       mkBtn("→ Direction", ()=>setTool("vec"),   tool==="vec"  ?"on-vec":  ""),
       mkSep(),
-      mkSlider("Brush size", brushSz, 4, 120, null,     v=>{brushSz=v;}),
-      mkSlider("Strength",   brushStr,1, 100, tool==="vec"?"purple":null, v=>{brushStr=v;}),
+      mkSlider("Radius (px)", brushSz, 4, Math.floor(N/2), null,     v=>{brushSz=v;}),
+      mkSlider("Strength (%)",   brushStr,1, 100, null, v=>{brushStr=v;}),
       mkSep(),
       mkBtn("Clear density",()=>{ densityF32.fill(0); render(); emitDensity(); },"danger"),
       mkBtn("Clear directions", ()=>{ vecCxF32.fill(0); vecCyF32.fill(0); vecMagF32.fill(0); render(); emitVec(); },"danger")
@@ -392,14 +412,14 @@ function buildToolbar(){
       mkBtn("↖ Move",   ()=>setTool("move"),  tool==="move" ?"on-move" :""),
       mkBtn("✕ Delete", ()=>setTool("del"),   tool==="del"  ?"on-del"  :""),
       cnt,
-      mkBtn("Clear guides",()=>{ wells=[];selWell=-1;wellsOwned=true;updateWellPanel();render();emitWells();buildToolbar(); },"danger")
+      mkBtn("Clear guides",()=>{ wells=[];selWell=-1;hovWell=-1;wellsOwned=true;updateWellPanel();render();emitWells();buildToolbar(); },"danger")
     );
   }
 }
 
 function setTool(t){
   tool=t; if(t!=="move"){selWell=-1;updateWellPanel();}
-  buildToolbar(); buildHint();
+  hovWell=-1; buildToolbar(); buildHint(); render();
   cvOver.style.cursor=t==="place"?"crosshair":t==="del"?"not-allowed":t==="move"?"default":"none";
   cvVec.style.display=t==="vec"?"block":"none";
   if(t!=="vec") vecCtx.clearRect(0,0,N,N);
@@ -424,12 +444,13 @@ function updateWellPanel(){
   panel.innerHTML=`<div class="wp-title">Guide ${selWell+1}</div>`;
   panel.classList.add("show");
   const grid=document.createElement("div"); grid.className="wp-grid";
-  [["rx","Radius X",8,160],["ry","Radius Y",8,160],["angle","Angle °",0,179]].forEach(([key,lbl,mn,mx])=>{
+  [["rx","X radius (px)",4,Math.max(Math.floor(N/2),Math.ceil(w.rx))],["ry","Y radius (px)",4,Math.max(Math.floor(N/2),Math.ceil(w.ry))],["angle","Rotation (°)",0,180]].forEach(([key,lbl,mn,mx])=>{
     const row=document.createElement("div"); row.className="wp-row";
     const head=document.createElement("div"); head.className="wp-head";
     head.innerHTML=`<span class="lbl">${lbl}</span><span class="val" id="wpv-${key}">${Math.round(w[key])}</span>`;
     const inp=document.createElement("input"); inp.type="range"; inp.className="wp-sl";
-    inp.min=mn;inp.max=mx;inp.value=w[key];
+    inp.min=mn;inp.max=mx;inp.step=1;inp.value=w[key];
+    inp.setAttribute("aria-label",lbl);
     inp.addEventListener("input",()=>{
       if(selWell<0)return;
       wells[selWell][key]=+inp.value;
@@ -442,10 +463,10 @@ function updateWellPanel(){
   panel.appendChild(grid);
   const footer=document.createElement("div"); footer.className="wp-footer";
   const posEl=document.createElement("span"); posEl.className="wp-pos"; posEl.id="wp-pos";
-  posEl.textContent=`x ${Math.round(w.x)}  y ${Math.round(w.y)}`;
-  const delBtn=document.createElement("button"); delBtn.className="wp-del"; delBtn.textContent="Remove";
+  posEl.textContent=`Center: x ${Math.round(w.x)}, y ${Math.round(w.y)} px`;
+  const delBtn=document.createElement("button"); delBtn.className="wp-del"; delBtn.textContent="Remove guide";
   delBtn.addEventListener("click",()=>{
-    wells.splice(selWell,1);selWell=-1;wellsOwned=true;
+    wells.splice(selWell,1);selWell=-1;hovWell=-1;wellsOwned=true;
     updateWellPanel();render();emitWells();buildToolbar();
   });
   footer.append(posEl,delBtn); panel.appendChild(footer);
@@ -511,22 +532,26 @@ function drawVectorOverlay(ctx){
 
 function drawWells(ctx){
   wells.forEach((w,i)=>{
-    const isSel=selWell===i,isHov=hovWell===i,col=isSel?"#f59e0b":"#60a5fa";
+    const isSel=selWell===i, isHov=hovWell===i;
+    const deleting=tool==="del" && isHov;
+    const col=deleting?"#ff6268":isSel?"#fbbf24":"#79b8ed";
+    const emphasized=deleting||isSel||isHov;
     ctx.save(); ctx.translate(w.x,w.y); ctx.rotate(w.angle*Math.PI/180);
-    if(isSel){ctx.shadowColor=col;ctx.shadowBlur=14;}
     ctx.beginPath(); ctx.ellipse(0,0,w.rx,w.ry,0,0,Math.PI*2);
-    ctx.fillStyle=col+(isSel?"40":"22");
-    ctx.strokeStyle=col+(isSel?"ff":isHov?"cc":"88");
-    ctx.lineWidth=isSel?2:1.5; ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
-    ctx.beginPath(); ctx.moveTo(-w.rx,0); ctx.lineTo(w.rx,0);
-    ctx.strokeStyle=col+"99"; ctx.lineWidth=1; ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
-    for(const ex of[-w.rx,w.rx]){
-      ctx.beginPath();ctx.moveTo(ex,-5);ctx.lineTo(ex,5);ctx.strokeStyle=col+"bb";ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle=col+(deleting?"30":isSel?"18":"0c");
+    ctx.strokeStyle=col+(emphasized?"ff":"b0");
+    ctx.lineWidth=emphasized?2:1.25; ctx.fill(); ctx.stroke();
+    // Show shape axes only while inspecting a guide, leaving its label clear.
+    if((isSel||isHov)&&!deleting){
+      ctx.strokeStyle=col+"70"; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+      ctx.beginPath();
+      if(w.rx>13){ctx.moveTo(-w.rx,0);ctx.lineTo(-12,0);ctx.moveTo(12,0);ctx.lineTo(w.rx,0);}
+      if(w.ry>13){ctx.moveTo(0,-w.ry);ctx.lineTo(0,-12);ctx.moveTo(0,12);ctx.lineTo(0,w.ry);}
+      ctx.stroke(); ctx.setLineDash([]);
     }
-    ctx.beginPath();ctx.moveTo(0,-w.ry);ctx.lineTo(0,w.ry);
-    ctx.strokeStyle=col+"44";ctx.lineWidth=1;ctx.setLineDash([3,4]);ctx.stroke();ctx.setLineDash([]);
-    ctx.font="bold 11px Inter,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
-    ctx.fillStyle=col+(isSel?"ff":"cc");ctx.fillText(i+1,0,0);
+    ctx.rotate(-w.angle*Math.PI/180);
+    ctx.font="600 12px Inter,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillStyle=col;ctx.fillText(deleting?"×":i+1,0,0);
     ctx.restore();
   });
 }
@@ -635,7 +660,7 @@ function hitWell(mx,my){
     const w=wells[i],ang=-w.angle*Math.PI/180;
     const dx=mx-w.x,dy=my-w.y;
     const xr=dx*Math.cos(ang)-dy*Math.sin(ang),yr=dx*Math.sin(ang)+dy*Math.cos(ang);
-    if((xr/w.rx)**2+(yr/w.ry)**2<=1.3) return i;
+    if((xr/w.rx)**2+(yr/w.ry)**2<=(tool==="del"?1:1.3)) return i;
   }
   return -1;
 }
@@ -685,7 +710,7 @@ function attachEvents(cv){
     cursorRing.style.display="none";
     vecCtx.clearRect(0,0,N,N);
     moveDirX=1; moveDirY=0; moveLastX=-1; moveLastY=-1;
-    hovWell=-1;
+    if(hovWell!==-1){hovWell=-1;render();}
   });
 }
 
@@ -706,7 +731,7 @@ function onPointerDown(e){
         wells.push({x,y,rx:45,ry:28,angle:0}); selWell=wells.length-1; wellsOwned=true;
         updateWellPanel();render();buildToolbar();
       } else if(tool==="del"){
-        if(idx>=0){wells.splice(idx,1);selWell=-1;wellsOwned=true;updateWellPanel();render();emitWells();buildToolbar();}
+        if(idx>=0){wells.splice(idx,1);selWell=-1;hovWell=hitWell(x,y);wellsOwned=true;updateWellPanel();render();emitWells();buildToolbar();}
       } else {
         const prev=selWell; selWell=idx;
         if(idx>=0) drag={idx,sx:x,sy:y,ox:wells[idx].x,oy:wells[idx].y};
@@ -754,7 +779,7 @@ function onPointerMove(e){
       if(drag){
         wells[drag.idx].x=drag.ox+(x-drag.sx); wells[drag.idx].y=drag.oy+(y-drag.sy);
         const posEl=document.getElementById("wp-pos");
-        if(posEl) posEl.textContent=`x ${Math.round(wells[drag.idx].x)}  y ${Math.round(wells[drag.idx].y)}`;
+        if(posEl) posEl.textContent=`Center: x ${Math.round(wells[drag.idx].x)}, y ${Math.round(wells[drag.idx].y)} px`;
         render();
       } else if(hovWell!==prevH){render();}
     }
