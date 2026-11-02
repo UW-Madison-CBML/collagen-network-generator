@@ -161,15 +161,15 @@ st.markdown(f"""
 [data-testid="stMainBlockContainer"] {{ padding: 4.5rem 2.5rem 2rem; max-width: 1900px; }}
 .research-header {{ display:flex; align-items:center; justify-content:space-between;
   gap:24px; flex-wrap:wrap; border-bottom:3px solid #c5050c; padding-bottom:20px; margin-bottom:20px; }}
-.research-header h1 {{ font-size:36px; font-weight:600; padding:0; margin:0; line-height:1.25; }}
-.research-header p {{ margin:6px 0 0; font-size:20px; color:var(--shg-muted); }}
+.research-header h1 {{ font-size:32px; font-weight:600; padding:0; margin:0; line-height:1.25; }}
+.research-header p {{ margin:6px 0 0; font-size:16px; color:var(--shg-muted); }}
 .research-header img {{ width:190px; height:auto; }}
-[data-testid="stHeadingWithActionElements"] h3 {{ font-size:28px; font-weight:650; padding-top:0; }}
-[data-testid="stExpander"] summary p {{ font-size:22px!important; font-weight:600; }}
-[data-testid="stCaptionContainer"] p {{ font-size:20px; line-height:1.5; color:var(--shg-muted); }}
+[data-testid="stHeadingWithActionElements"] h3 {{ font-size:24px; font-weight:650; padding-top:0; }}
+[data-testid="stExpander"] summary p {{ font-size:17px!important; font-weight:600; }}
+[data-testid="stCaptionContainer"] p {{ font-size:16px; line-height:1.5; color:var(--shg-muted); }}
 [data-testid="stWidgetLabel"] p, [data-testid="stButton"] button p,
 [data-testid="stDownloadButton"] button p, [data-testid="stNumberInput"] input,
-[data-testid="stExpander"] summary p, [data-testid="stTabs"] button p {{ font-size:21px; line-height:1.45; }}
+[data-testid="stExpander"] summary p, [data-testid="stTabs"] button p {{ font-size:16px; line-height:1.45; }}
 [data-testid="stButton"] button, [data-testid="stDownloadButton"] button {{
   min-height:44px; padding:8px 14px; border-radius:4px;
 }}
@@ -178,17 +178,17 @@ button[kind="primary"]:hover {{ background:#9b0000!important; color:#fff!importa
 button:focus-visible, input:focus-visible, summary:focus-visible {{ outline:3px solid #c5050c; outline-offset:3px; }}
 button[aria-label^="Help for"] {{ color:#c5050c; min-width:28px; min-height:28px; }}
 button[aria-label^="Help for"] svg {{ width:22px; height:22px; }}
-[data-baseweb="select"] *, [role="listbox"] *, [role="option"] {{ font-size:22px!important; line-height:1.4!important; }}
+[data-baseweb="select"] *, [role="listbox"] *, [role="option"] {{ font-size:17px!important; line-height:1.4!important; }}
 [data-testid="stTabs"] [role="tablist"] {{ order:2; }}
 [data-testid="stTabs"] [role="tabpanel"] {{ order:1; padding-top:0; }}
-[role="tooltip"] {{ font-size:20px; line-height:1.5; }}
+[role="tooltip"] {{ font-size:16px; line-height:1.5; }}
 [data-testid="stSliderTickBarMin"], [data-testid="stSliderTickBarMax"],
-[data-testid="stSliderThumbValue"] {{ font-size:20px; }}
+[data-testid="stSliderThumbValue"] {{ font-size:16px; }}
 [data-testid="stExpander"] {{ border-radius:4px; }}
 [data-testid="stExpander"] summary {{ min-height:48px; }}
 .output-empty {{ aspect-ratio:1; display:flex; align-items:center; justify-content:center;
   border:1px solid var(--shg-border); background:var(--shg-surface); padding:32px;
-  font-size:21px; line-height:1.6; text-align:center; color:var(--shg-muted); }}
+  font-size:16px; line-height:1.6; text-align:center; color:var(--shg-muted); }}
 @media (max-width:900px) {{
   [data-testid="stMainBlockContainer"] {{ padding:4.5rem 1rem 2rem; }}
   .research-header h1 {{ font-size:26px; }}
@@ -206,12 +206,12 @@ st.markdown("""
 <style>
 [data-testid="stSelectbox"] input, [data-testid="stSelectbox"] div,
 [data-testid="stSelectbox"] span, [role="combobox"], [role="option"] * {
-  font-size:22px!important; line-height:1.4!important;
+  font-size:17px!important; line-height:1.4!important;
 }
 [data-testid="stTooltipContent"] *, [data-baseweb="tooltip"] *, [role="tooltip"] * {
-  font-size:22px!important; line-height:1.5!important;
+  font-size:17px!important; line-height:1.5!important;
 }
-.preset-description { font-size:21px; line-height:1.5; color:var(--shg-text); margin:0 0 12px; }
+.preset-description { font-size:16px; line-height:1.5; color:var(--shg-text); margin:0 0 12px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -247,7 +247,7 @@ def parameter_number(label, *args, help, **kwargs):
 st.markdown("""
 <style>
 .parameter-label { display:flex; align-items:center; justify-content:space-between;
-  gap:16px; font-size:21px; font-weight:500; line-height:1.45; margin-top:4px; }
+  gap:16px; font-size:16px; font-weight:500; line-height:1.45; margin-top:4px; }
 .parameter-help { display:inline-flex; position:relative; flex:0 0 22px; }
 .help-circle { box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center;
   width:22px; height:22px; border:2px solid #737780; border-radius:50%;
@@ -256,18 +256,18 @@ st.markdown("""
 .parameter-help-card { display:none; position:absolute; right:0; top:100%; z-index:1000;
   width:min(360px,75vw); padding:16px; border:1px solid var(--shg-border);
   border-radius:6px; background:var(--background-color,white); color:var(--shg-text);
-  font-size:21px; font-weight:400; line-height:1.5; box-shadow:0 3px 10px #0002; }
+  font-size:16px; font-weight:400; line-height:1.5; box-shadow:0 3px 10px #0002; }
 .parameter-help:hover .parameter-help-card,
 .help-circle:focus-visible + .parameter-help-card { display:block; }
 .help-circle:focus-visible { outline:3px solid #c5050c; outline-offset:3px; }
 [data-testid="stSlider"] { padding-top:14px; padding-bottom:4px; }
-[data-testid="stSliderThumbValue"] { font-size:20px!important; line-height:1.3; }
+[data-testid="stSliderThumbValue"] { font-size:16px!important; line-height:1.3; }
 [data-testid="stNumberInput"] { margin-top:4px; margin-bottom:6px; }
 [data-testid="stMarkdownContainer"] .preset-status { height:48px; min-height:48px; min-width:0; box-sizing:border-box;
   padding:8px 14px; border-left:4px solid #c5050c; display:flex; flex-wrap:nowrap;
   align-items:center; gap:10px; overflow:hidden; background:var(--shg-surface); cursor:default; }
-.preset-status .status-label { flex:0 0 auto; white-space:nowrap; font-size:20px!important; font-weight:500; color:var(--shg-muted); }
-.preset-status .status-value { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:24px!important; font-weight:600; line-height:1.4; color:var(--shg-text); }
+.preset-status .status-label { flex:0 0 auto; white-space:nowrap; font-size:16px!important; font-weight:500; color:var(--shg-muted); }
+.preset-status .status-value { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:18px!important; font-weight:600; line-height:1.4; color:var(--shg-text); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -926,9 +926,9 @@ with col_mid:
 st.markdown("""
 <div style="margin-top:32px;padding-top:12px;border-top:1px solid var(--shg-border);
      display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <span style="color:var(--shg-muted);font-size:20px">
+    <span style="color:var(--shg-muted);font-size:16px">
     © Bhaskar Lab · Computational Biology &amp; Machine Learning · University of Wisconsin–Madison
   </span>
-  <span style="color:#cc1543;font-size:20px;font-weight:600">CBML</span>
+  <span style="color:#cc1543;font-size:16px;font-weight:600">CBML</span>
 </div>
 """, unsafe_allow_html=True)
