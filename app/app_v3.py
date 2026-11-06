@@ -629,12 +629,23 @@ PRESETS = {
     # },
 }
 
+# Reference images and classifications supplied by the lab.
+PRESET_IMAGES = [{'key': 'RED', 'label': 'Type 1', 'classification': 'Normal', 'image': 'Type1_Normal.png'}, {'key': 'YELLOW_BAD', 'label': 'Type 2', 'classification': 'Normal', 'image': 'Type2_Normal.png'}, {'key': 'YELLOW_GOOD', 'label': 'Type 3', 'classification': 'Normal', 'image': 'Type3_Normal.png'}, {'key': 'INTERESTING', 'label': 'Type 4', 'classification': 'Normal', 'image': 'Type4_Normal.png'}, {'key': 'CYAN', 'label': 'Type 5', 'classification': 'High Grade Serous Type I', 'image': 'Type5_High_Grade_Serous_Type_I.png'}, {'key': 'TYPE6', 'label': 'Type 6', 'classification': 'Benign', 'image': 'Type6_Benign.png'}, {'key': 'TYPE7', 'label': 'Type 7', 'classification': 'Endometriod Type I', 'image': 'Type7_Endometriod_Type_I.png'}, {'key': 'TYPE8', 'label': 'Type 8', 'classification': 'High Grade Serous Type I', 'image': 'Type8_High_Grade_Serous_Type_I.png'}, {'key': 'TYPE9', 'label': 'Type 9', 'classification': 'Low Grade Serous Type I', 'image': 'Type9_Low_Grade_Serous_Type_I.png'}]
+for reference in PRESET_IMAGES:
+    key = reference["key"]
+    if key not in PRESETS:
+        PRESETS[key] = {"params": None, "desc": "Placeholder"}
+    PRESETS[key].update(label=reference["label"], image=reference["image"], classification=reference["classification"])
+    PRESETS[key]["desc"] = "Classification: " + reference["classification"] + ". " + PRESETS[key]["desc"]
+
 PARAMETER_KEYS = ("num_fibers", "spline_length", "thickness", "G_align", "L_align",
                   "G_curve", "L_curve", "L_wave_freq", "n_layers", "depth", "focal_plane", "seed",
                   "wave_wavelength_px", "wave_amplitude_px")
 
 def apply_preset(key):
     p = PRESETS[key]["params"]
+    if p is None:
+        return
     for k, v in p.items():
         st.session_state[k] = v
     st.session_state.applied_preset = key
@@ -658,28 +669,23 @@ with settings_area:
             for offset, (preset_key, preset) in enumerate(preset_items[row_start:row_start + 2]):
                 number = row_start + offset + 1
                 active = selected_preset == preset_key and not preset_modified
-                # Replace these numbered placeholders with supplied preset images.
-                placeholder = f'''<svg xmlns="http://www.w3.org/2000/svg" width="240" height="180" viewBox="0 0 240 180">
-                  <rect width="240" height="180" fill="#f4f4f4"/>
-                  <rect x="100" y="30" width="40" height="32" rx="3" fill="none" stroke="#777" stroke-width="2"/>
-                  <circle cx="111" cy="40" r="3" fill="#777"/>
-                  <path d="M103 58l10-10 8 7 8-12 8 15" fill="none" stroke="#777" stroke-width="2"/>
-                  <text x="120" y="100" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#333">Preset {number}</text>
-                </svg>'''
-                image_data = base64.b64encode(placeholder.encode()).decode()
+                image_data = img_to_base64(current_dir / "assets" / "presets" / preset["image"])
                 tile_class = "st-key-preset_tile_" + preset_key
-                st.markdown(f'''<style>
-                  .{tile_class} button {{ width:100%; height:150px; padding:0;
-                    background:#f4f4f4 url("data:image/svg+xml;base64,{image_data}") center/contain no-repeat!important;
-                    border:{'3px solid #c5050c' if active else '1px solid #b8b8b8'}!important; border-radius:5px; }}
-                  .{tile_class} button:hover {{ border-color:#c5050c!important; box-shadow:0 0 0 1px #c5050c; }}
-                  .{tile_class} button:focus-visible {{ outline:3px solid #c5050c; outline-offset:3px; }}
-                  .{tile_class} button p {{ position:absolute; width:1px; height:1px; overflow:hidden;
-                    clip-path:inset(50%); white-space:nowrap; }}
-                </style>''', unsafe_allow_html=True)
                 with tiles[offset], st.container(key="preset_tile_" + preset_key):
+                    st.markdown(f'''<style>
+                      .{tile_class} [data-testid="stElementContainer"]:has(style) {{ display:none; }}
+                      .{tile_class} button {{ width:100%; height:auto; aspect-ratio:1; padding:0; position:relative;
+                        background:#f4f4f4 url("data:image/png;base64,{image_data}") center/cover no-repeat!important;
+                        border:{'3px solid #c5050c' if active else '1px solid #b8b8b8'}!important; border-radius:5px; }}
+                      .{tile_class} button:hover {{ border-color:#c5050c!important; box-shadow:0 0 0 1px #c5050c; }}
+                      .{tile_class} button:focus-visible {{ outline:3px solid #c5050c; outline-offset:3px; }}
+                      .{tile_class} button p {{ position:absolute; bottom:0; left:0; right:0; margin:0;
+                        padding:7px; background:#000b; color:white!important; font-size:16px!important; }}
+                      .{tile_class} button:disabled {{ opacity:1; cursor:default; }}
+                    </style>''', unsafe_allow_html=True)
                     st.button(preset["label"] + (" (selected)" if active else ""),
                               key="preset_" + preset_key,
+                              disabled=preset["params"] is None,
                               help=preset["label"] + ": " + preset["desc"],
                               on_click=apply_preset, args=(preset_key,), width="stretch")
 
