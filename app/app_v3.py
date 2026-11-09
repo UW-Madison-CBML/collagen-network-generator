@@ -589,13 +589,32 @@ PRESETS = {
             "G_curve":       0,
             "L_curve":       0.6,
             "L_conn":        1,
-            "num_fibers":    1800,
+            "num_fibers":    1200,
             "spline_length": 50,
             "thickness":     2.0,
             "wave_amplitude_px": 6,
             "wave_wavelength_px": 50
         },
     },
+
+    # "TYPE4": { # syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=1, G_conn=1, L_align=0.6, L_density=0.55, L_conn=1, L_curve=0, spline_length=40, spline_num=3000)
+    #     "label": "Dense curved network",
+    #     "color": "#a78bfa",
+    #     "desc":  "3,000 short fibers with strong broad curvature and weak overall alignment.",
+    #     "params": {
+    #         "seed":          10,
+    #         "G_align":       0.2,
+    #         "L_align":       0.6,
+    #         "G_curve":       1.0,
+    #         "L_curve":       0.0,
+    #         "L_conn":        1.0,
+    #         "L_wave_freq":   0.5,
+    #         "num_fibers":    1500,
+    #         "spline_length": 40,
+    #         "thickness":     2.0,
+    #     },
+    # },
+
     "TYPE5": { #syn.generate_synthetic_shg(seed=10, G_align=0.95, G_density=0.7, G_curve=0, G_conn=1, L_align=0.6, L_density=0.4, L_conn=1, L_curve=0.6, spline_length=60, spline_num=1200, wave_amplitude_px=6, wave_wavelength_px=30, L_wave_freq=0.5)
 
         "label": "Aligned wavy fibers",
@@ -616,22 +635,27 @@ PRESETS = {
             "wave_wavelength_px": 50 # was 30
         },
     },
-    # "TYPE6": {
-    #     "label": "Sparse unaligned fibers",
-    #     "color": "#fb923c",
-    #     "desc":  "Balanced : test configuration",
-    #     "params": {
-    #         "G_align":       0.5,
-    #         "L_align":       0.5,
-    #         "G_curve":       0.5,
-    #         "L_curve":       0.0,
-    #         "L_conn":        0.3,
-    #         "L_wave_freq":   0.25,
-    #         "num_fibers":    1200,
-    #         "spline_length": 50,
-    #         "thickness":     2.5,
-    #     },
-    # },
+    "TYPE6": {
+        "label": "Sparse unaligned fibers",
+        "color": "#fb923c",
+        "desc":  "Balanced : test configuration",
+        "params": {
+            "G_align":       0,
+            "L_align":       0.2,
+            "G_curve":       0.5,
+            "G_conn":        0.5,
+            "G_density":     0.4,
+            "L_density":     0,
+            "L_curve":       0.3,
+            "L_conn":        0,
+            "L_wave_freq":   0.25,
+            "num_fibers":    250,
+            "spline_length": 100,
+            "thickness":     2.0,
+            "wave_amplitude_px": 50, # was 6
+            "wave_wavelength_px": 300 # was 30
+        },
+    },
 
     "TYPE7": {
         "label": "Highly aligned, dense, wavy fibers",
@@ -648,7 +672,7 @@ PRESETS = {
             "L_conn":        0,
             "num_fibers":    1800,
             "spline_length": 100,
-            "thickness":     2.0,
+            "thickness":     1.0,
         },
     },
 
@@ -667,35 +691,33 @@ PRESETS = {
             "L_conn":        1,
             "num_fibers":    3000,
             "spline_length": 20,
-            "thickness":     2.0,
+            "thickness":     1.5,
             "wave_amplitude_px": 6,
-            "wave_wavelength_px": 40 # was 30
+            "wave_wavelength_px": 40 
         },
     },
 
-    # "TYPE9": {
-    #     "label": "Short, wavy fibers",
-    #     "color": "#fb923c",
-    #     "desc":  "3000 short, wavy fibers",
-    #     "params": {
-    #         "seed":          10,
-    #         "G_align":       0.3,
-    #         "G_density":     0.4,
-    #         "G_conn":        0.9,
-    #         "L_align":       0.8,
-    #         "G_curve":       0,
-    #         "L_curve":       0.6,
-    #         "L_conn":        1,
-    #         "num_fibers":    3000,
-    #         "spline_length": 20,
-    #         "thickness":     2.0,
-    #         "wave_amplitude_px": 6,
-    #         "wave_wavelength_px": 40 # was 30
-    #     },
-    # },
+    "TYPE9": {
+        "label": "Very disorganized fibers",
+        "color": "#fb923c",
+        "desc":  "Very disorganized fibers",
+        "params": {
+            "seed":          10,
+            "G_align":       0.1,
+            "G_density":     0.4,
+            "G_conn":        0.5,
+            "L_align":       0,
+            "G_curve":       0.5,
+            "L_curve":       0.5,
+            "L_conn":        0,
+            "num_fibers":    1000,
+            "spline_length": 60,
+            "thickness":     2.0,
+            "wave_amplitude_px": 30,
+            "wave_wavelength_px": 100 
+        },
+    },
 }
-
-
 
 # Reference images and classifications supplied by the lab.
 PRESET_IMAGES = [
