@@ -37,6 +37,7 @@ def img_to_base64(path):
         return base64.b64encode(f.read()).decode()
 
 LOGO_B64 = img_to_base64(os.path.join(current_dir, "assets", "uw-logo-vertical-color-web-digital.png"))
+CBML_LOGO_B64 = img_to_base64(os.path.join(current_dir, "assets", "cbml-logo.png"))
 LOGO_B64_horizontal = img_to_base64(os.path.join(current_dir, "assets", "uw-logo-horizontal-color-web-digital.png"))
 
 def generate_custom_fields_from_canvas(
@@ -162,14 +163,25 @@ st.markdown(f"""
 .research-header {{ display:flex; align-items:center; justify-content:space-between;
   gap:24px; flex-wrap:wrap; border-bottom:3px solid #c5050c; padding-bottom:20px; margin-bottom:20px; }}
 .research-header h1 {{ font-size:36px; font-weight:600; padding:0; margin:0; line-height:1.25; }}
-.research-header p {{ margin:6px 0 0; font-size:20px; color:var(--shg-muted); }}
-.research-header img {{ width:190px; height:auto; }}
-[data-testid="stHeadingWithActionElements"] h3 {{ font-size:28px; font-weight:650; padding-top:0; }}
-[data-testid="stExpander"] summary p {{ font-size:22px!important; font-weight:600; }}
-[data-testid="stCaptionContainer"] p {{ font-size:20px; line-height:1.5; color:var(--shg-muted); }}
+.research-header h1 {{ font-size:32px; font-weight:600; padding:0; margin:0; line-height:1.25; }}
+.research-header p {{ margin:6px 0 0; font-size:16px; color:var(--shg-muted); }}
+.research-header .uw-logo {{ width:190px; height:auto; }}
+.research-brand {{ display:flex; align-items:center; gap:20px; }}
+.research-header .cbml-link {{ width:96px; height:96px; overflow:hidden; }}
+.research-header .cbml-logo {{ width:104px; height:104px; max-width:none; margin:-4px; object-fit:contain; }}
+.research-header a {{ display:inline-flex; flex-shrink:0; }}
+.research-header a:focus-visible, .research-footer a:focus-visible {{ outline:3px solid #c5050c; outline-offset:4px; }}
+.research-footer {{ margin-top:32px; padding-top:20px; border-top:1px solid var(--shg-border);
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;
+  font-size:16px; line-height:1.6; color:var(--shg-muted); }}
+.research-footer strong {{ color:var(--shg-text); font-weight:600; }}
+.research-footer a {{ color:#a00000; text-decoration:underline; text-underline-offset:3px; }}
+[data-testid="stHeadingWithActionElements"] h3 {{ font-size:24px; font-weight:650; padding-top:0; }}
+[data-testid="stExpander"] summary p {{ font-size:17px!important; font-weight:600; }}
+[data-testid="stCaptionContainer"] p {{ font-size:16px; line-height:1.5; color:var(--shg-muted); }}
 [data-testid="stWidgetLabel"] p, [data-testid="stButton"] button p,
 [data-testid="stDownloadButton"] button p, [data-testid="stNumberInput"] input,
-[data-testid="stExpander"] summary p, [data-testid="stTabs"] button p {{ font-size:21px; line-height:1.45; }}
+[data-testid="stExpander"] summary p, [data-testid="stTabs"] button p {{ font-size:16px; line-height:1.45; }}
 [data-testid="stButton"] button, [data-testid="stDownloadButton"] button {{
   min-height:44px; padding:8px 14px; border-radius:4px;
 }}
@@ -178,26 +190,36 @@ button[kind="primary"]:hover {{ background:#9b0000!important; color:#fff!importa
 button:focus-visible, input:focus-visible, summary:focus-visible {{ outline:3px solid #c5050c; outline-offset:3px; }}
 button[aria-label^="Help for"] {{ color:#c5050c; min-width:28px; min-height:28px; }}
 button[aria-label^="Help for"] svg {{ width:22px; height:22px; }}
-[data-baseweb="select"] *, [role="listbox"] *, [role="option"] {{ font-size:22px!important; line-height:1.4!important; }}
+[data-baseweb="select"] *, [role="listbox"] *, [role="option"] {{ font-size:17px!important; line-height:1.4!important; }}
 [data-testid="stTabs"] [role="tablist"] {{ order:2; }}
 [data-testid="stTabs"] [role="tabpanel"] {{ order:1; padding-top:0; }}
-[role="tooltip"] {{ font-size:20px; line-height:1.5; }}
+[role="tooltip"] {{ font-size:16px; line-height:1.5; }}
 [data-testid="stSliderTickBarMin"], [data-testid="stSliderTickBarMax"],
-[data-testid="stSliderThumbValue"] {{ font-size:20px; }}
+[data-testid="stSliderThumbValue"] {{ font-size:16px; }}
 [data-testid="stExpander"] {{ border-radius:4px; }}
 [data-testid="stExpander"] summary {{ min-height:48px; }}
 .output-empty {{ aspect-ratio:1; display:flex; align-items:center; justify-content:center;
   border:1px solid var(--shg-border); background:var(--shg-surface); padding:32px;
-  font-size:21px; line-height:1.6; text-align:center; color:var(--shg-muted); }}
+  font-size:16px; line-height:1.6; text-align:center; color:var(--shg-muted); }}
 @media (max-width:900px) {{
   [data-testid="stMainBlockContainer"] {{ padding:4.5rem 1rem 2rem; }}
   .research-header h1 {{ font-size:26px; }}
-  .research-header img {{ width:160px; }}
+  .research-header .uw-logo {{ width:160px; }}
+  .research-header .cbml-link {{ width:76px; height:76px; }}
+  .research-header .cbml-logo {{ width:84px; height:84px; }}
+  .research-brand {{ gap:12px; }}
 }}
 </style>
 <header class="research-header">
   <div><h1>SHG Fiber Simulator</h1><p>Bhaskar Lab · Computational Biology &amp; Machine Learning</p></div>
-  <img src="data:image/png;base64,{LOGO_B64_horizontal}" alt="University of Wisconsin–Madison">
+  <div class="research-brand">
+    <a class="cbml-link" href="https://github.com/UW-Madison-CBML" target="_blank" rel="noopener noreferrer" aria-label="CBML lab on GitHub">
+      <img class="cbml-logo" src="data:image/png;base64,{CBML_LOGO_B64}" alt="CBML">
+    </a>
+    <a href="https://www.wisc.edu/" target="_blank" rel="noopener noreferrer" aria-label="University of Wisconsin-Madison website">
+      <img class="uw-logo" src="data:image/png;base64,{LOGO_B64_horizontal}" alt="University of Wisconsin-Madison">
+    </a>
+  </div>
 </header>
 """, unsafe_allow_html=True)
 
@@ -206,12 +228,12 @@ st.markdown("""
 <style>
 [data-testid="stSelectbox"] input, [data-testid="stSelectbox"] div,
 [data-testid="stSelectbox"] span, [role="combobox"], [role="option"] * {
-  font-size:22px!important; line-height:1.4!important;
+  font-size:17px!important; line-height:1.4!important;
 }
 [data-testid="stTooltipContent"] *, [data-baseweb="tooltip"] *, [role="tooltip"] * {
-  font-size:22px!important; line-height:1.5!important;
+  font-size:17px!important; line-height:1.5!important;
 }
-.preset-description { font-size:21px; line-height:1.5; color:var(--shg-text); margin:0 0 12px; }
+.preset-description { font-size:16px; line-height:1.5; color:var(--shg-text); margin:0 0 12px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -247,7 +269,7 @@ def parameter_number(label, *args, help, **kwargs):
 st.markdown("""
 <style>
 .parameter-label { display:flex; align-items:center; justify-content:space-between;
-  gap:16px; font-size:21px; font-weight:500; line-height:1.45; margin-top:4px; }
+  gap:16px; font-size:16px; font-weight:500; line-height:1.45; margin-top:4px; }
 .parameter-help { display:inline-flex; position:relative; flex:0 0 22px; }
 .help-circle { box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center;
   width:22px; height:22px; border:2px solid #737780; border-radius:50%;
@@ -256,18 +278,18 @@ st.markdown("""
 .parameter-help-card { display:none; position:absolute; right:0; top:100%; z-index:1000;
   width:min(360px,75vw); padding:16px; border:1px solid var(--shg-border);
   border-radius:6px; background:var(--background-color,white); color:var(--shg-text);
-  font-size:21px; font-weight:400; line-height:1.5; box-shadow:0 3px 10px #0002; }
+  font-size:16px; font-weight:400; line-height:1.5; box-shadow:0 3px 10px #0002; }
 .parameter-help:hover .parameter-help-card,
 .help-circle:focus-visible + .parameter-help-card { display:block; }
 .help-circle:focus-visible { outline:3px solid #c5050c; outline-offset:3px; }
 [data-testid="stSlider"] { padding-top:14px; padding-bottom:4px; }
-[data-testid="stSliderThumbValue"] { font-size:20px!important; line-height:1.3; }
+[data-testid="stSliderThumbValue"] { font-size:16px!important; line-height:1.3; }
 [data-testid="stNumberInput"] { margin-top:4px; margin-bottom:6px; }
 [data-testid="stMarkdownContainer"] .preset-status { height:48px; min-height:48px; min-width:0; box-sizing:border-box;
   padding:8px 14px; border-left:4px solid #c5050c; display:flex; flex-wrap:nowrap;
   align-items:center; gap:10px; overflow:hidden; background:var(--shg-surface); cursor:default; }
-.preset-status .status-label { flex:0 0 auto; white-space:nowrap; font-size:20px!important; font-weight:500; color:var(--shg-muted); }
-.preset-status .status-value { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:24px!important; font-weight:600; line-height:1.4; color:var(--shg-text); }
+.preset-status .status-label { flex:0 0 auto; white-space:nowrap; font-size:16px!important; font-weight:500; color:var(--shg-muted); }
+.preset-status .status-value { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:18px!important; font-weight:600; line-height:1.4; color:var(--shg-text); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -608,12 +630,23 @@ PRESETS = {
     # },
 }
 
+# Reference images and classifications supplied by the lab.
+PRESET_IMAGES = [{'key': 'RED', 'label': 'Type 1', 'classification': 'Normal', 'image': 'Type1_Normal.png'}, {'key': 'YELLOW_BAD', 'label': 'Type 2', 'classification': 'Normal', 'image': 'Type2_Normal.png'}, {'key': 'YELLOW_GOOD', 'label': 'Type 3', 'classification': 'Normal', 'image': 'Type3_Normal.png'}, {'key': 'INTERESTING', 'label': 'Type 4', 'classification': 'Normal', 'image': 'Type4_Normal.png'}, {'key': 'CYAN', 'label': 'Type 5', 'classification': 'High Grade Serous Type I', 'image': 'Type5_High_Grade_Serous_Type_I.png'}, {'key': 'TYPE6', 'label': 'Type 6', 'classification': 'Benign', 'image': 'Type6_Benign.png'}, {'key': 'TYPE7', 'label': 'Type 7', 'classification': 'Endometriod Type I', 'image': 'Type7_Endometriod_Type_I.png'}, {'key': 'TYPE8', 'label': 'Type 8', 'classification': 'High Grade Serous Type I', 'image': 'Type8_High_Grade_Serous_Type_I.png'}, {'key': 'TYPE9', 'label': 'Type 9', 'classification': 'Low Grade Serous Type I', 'image': 'Type9_Low_Grade_Serous_Type_I.png'}]
+for reference in PRESET_IMAGES:
+    key = reference["key"]
+    if key not in PRESETS:
+        PRESETS[key] = {"params": None, "desc": "Placeholder"}
+    PRESETS[key].update(label=reference["label"], image=reference["image"], classification=reference["classification"])
+    PRESETS[key]["desc"] = "Classification: " + reference["classification"] + ". " + PRESETS[key]["desc"]
+
 PARAMETER_KEYS = ("num_fibers", "spline_length", "thickness", "G_align", "L_align",
                   "G_curve", "L_curve", "L_wave_freq", "n_layers", "depth", "focal_plane", "seed",
                   "wave_wavelength_px", "wave_amplitude_px")
 
 def apply_preset(key):
     p = PRESETS[key]["params"]
+    if p is None:
+        return
     for k, v in p.items():
         st.session_state[k] = v
     st.session_state.applied_preset = key
@@ -630,15 +663,32 @@ with settings_area:
     with parameter_actions:
         st.markdown(f'<div class="preset-status" role="status" aria-live="polite"><span class="status-label">Current:</span><span class="status-value" title="{escape(status, quote=True)}">{escape(status)}</span></div>', unsafe_allow_html=True)
     with st.expander("Custom presets", expanded=False):
-        st.caption("Select a preset to apply it. Painted fields and guides are kept.")
-        for preset_key, preset in PRESETS.items():
-            preset_button, preset_help = st.columns([8, 1], gap="small")
-            with preset_button:
-                st.button(preset["label"], key="preset_" + preset_key,
-                          type="primary" if selected_preset == preset_key and not preset_modified else "secondary",
-                          on_click=apply_preset, args=(preset_key,), width='stretch')
-            with preset_help:
-                preset_description(preset["label"], preset["desc"])
+        st.caption("Select an image to apply a preset. Hover for details. Painted fields and guides are kept.")
+        preset_items = list(PRESETS.items())
+        for row_start in range(0, len(preset_items), 2):
+            tiles = st.columns(2, gap="small")
+            for offset, (preset_key, preset) in enumerate(preset_items[row_start:row_start + 2]):
+                number = row_start + offset + 1
+                active = selected_preset == preset_key and not preset_modified
+                image_data = img_to_base64(current_dir / "assets" / "presets" / preset["image"])
+                tile_class = "st-key-preset_tile_" + preset_key
+                with tiles[offset], st.container(key="preset_tile_" + preset_key):
+                    st.markdown(f'''<style>
+                      .{tile_class} [data-testid="stElementContainer"]:has(style) {{ display:none; }}
+                      .{tile_class} button {{ width:100%; height:auto; aspect-ratio:1; padding:0; position:relative;
+                        background:#f4f4f4 url("data:image/png;base64,{image_data}") center/cover no-repeat!important;
+                        border:{'3px solid #c5050c' if active else '1px solid #b8b8b8'}!important; border-radius:5px; }}
+                      .{tile_class} button:hover {{ border-color:#c5050c!important; box-shadow:0 0 0 1px #c5050c; }}
+                      .{tile_class} button:focus-visible {{ outline:3px solid #c5050c; outline-offset:3px; }}
+                      .{tile_class} button p {{ position:absolute; bottom:0; left:0; right:0; margin:0;
+                        padding:7px; background:#000b; color:white!important; font-size:16px!important; }}
+                      .{tile_class} button:disabled {{ opacity:1; cursor:default; }}
+                    </style>''', unsafe_allow_html=True)
+                    st.button(preset["label"] + (" (selected)" if active else ""),
+                              key="preset_" + preset_key,
+                              disabled=preset["params"] is None,
+                              help=preset["label"] + ": " + preset["desc"],
+                              on_click=apply_preset, args=(preset_key,), width="stretch")
 
     with parameter_group("Fiber", "Set the number, length and thickness of fibers."):
         parameter_slider("Fiber count", 20, 3000, step=10, key="num_fibers",
@@ -924,11 +974,7 @@ with col_mid:
             </div>""", unsafe_allow_html=True)
         
 st.markdown("""
-<div style="margin-top:32px;padding-top:12px;border-top:1px solid var(--shg-border);
-     display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <span style="color:var(--shg-muted);font-size:20px">
-    © Bhaskar Lab · Computational Biology &amp; Machine Learning · University of Wisconsin–Madison
-  </span>
-  <span style="color:#cc1543;font-size:20px;font-weight:600">CBML</span>
-</div>
+<footer class="research-footer">
+  <div>© Bhaskar Lab · Computational Biology &amp; Machine Learning · University of Wisconsin-Madison</div>
+</footer>
 """, unsafe_allow_html=True)
