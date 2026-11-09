@@ -522,7 +522,7 @@ PRESETS = {
     #syn.generate_synthetic_shg(seed=11, G_align=0.7, G_density=0.7, G_curve=0.5, G_conn=1, L_align=0.6, L_density=0, L_conn=0.3, L_curve=0, L_intensity=0.5, spline_length=50, spline_num=1200)
     #spline_num=num_fibers
     #
-    "RED": {
+    "TYPE1": {
         "label": "Aligned short fibers",
         "color": "#f87171",
         "desc":  "1,200 short fibers with strong overall alignment and moderate broad curvature.",
@@ -539,7 +539,7 @@ PRESETS = {
             "thickness":     2.0,
         },
     },
-    "YELLOW_BAD": { # syn.generate_synthetic_shg(seed=10, G_align=0.4, G_density=0.7, G_curve=0, G_conn=1, L_align=0.3, L_density=0.4, L_conn=1, L_curve=0, spline_length=60, spline_num=1200)
+    "TYPE2": { # syn.generate_synthetic_shg(seed=10, G_align=0.4, G_density=0.7, G_curve=0, G_conn=1, L_align=0.3, L_density=0.4, L_conn=1, L_curve=0, spline_length=60, spline_num=1200)
 
         "label": "Loosely aligned fibers",
         "color": "#fbbf24",
@@ -552,12 +552,12 @@ PRESETS = {
             "L_curve":       0.0,
             "L_conn":        1.0,
             "L_wave_freq":   0.5,
-            "num_fibers":    1200,
-            "spline_length": 60,
+            "num_fibers":    800, # was 1200
+            "spline_length": 100, # was 60
             "thickness":     2.0,
         },
     },
-    "YELLOW_GOOD": {# syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=0.7, G_conn=1, L_align=1, L_density=0.6, L_conn=0.3, L_curve=0, spline_length=70, spline_num=1200)
+    "TYPE3": {# syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=0.7, G_conn=1, L_align=1, L_density=0.6, L_conn=0.3, L_curve=0, spline_length=70, spline_num=1200)
         "label": "Curved, field-following fibers",
         "color": "#fde68a",
         "desc":  "800 fibers with broad curvature and strong following of the underlying direction field.",
@@ -574,24 +574,29 @@ PRESETS = {
             "thickness":     2.0,
         },
     },
-    "INTERESTING": { # syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=1, G_conn=1, L_align=0.6, L_density=0.55, L_conn=1, L_curve=0, spline_length=40, spline_num=3000)
+
+    # Changed this one completely
+    "TYPE4": { # syn.generate_synthetic_shg(seed=10, G_align=0.2, G_density=1, G_curve=1, G_conn=1, L_align=0.6, L_density=0.55, L_conn=1, L_curve=0, spline_length=40, spline_num=3000)
         "label": "Dense curved network",
         "color": "#a78bfa",
         "desc":  "3,000 short fibers with strong broad curvature and weak overall alignment.",
         "params": {
             "seed":          10,
-            "G_align":       0.2,
-            "L_align":       0.6,
-            "G_curve":       1.0,
-            "L_curve":       0.0,
-            "L_conn":        1.0,
-            "L_wave_freq":   0.5,
-            "num_fibers":    3000,
-            "spline_length": 40,
+            "G_align":       0.3,
+            "G_density":     0.7,
+            "G_conn":        0.9,
+            "L_align":       0.4,
+            "G_curve":       0,
+            "L_curve":       0.6,
+            "L_conn":        1,
+            "num_fibers":    1800,
+            "spline_length": 50,
             "thickness":     2.0,
+            "wave_amplitude_px": 6,
+            "wave_wavelength_px": 50
         },
     },
-    "CYAN": { #syn.generate_synthetic_shg(seed=10, G_align=0.95, G_density=0.7, G_curve=0, G_conn=1, L_align=0.6, L_density=0.4, L_conn=1, L_curve=0.6, spline_length=60, spline_num=1200, wave_amplitude_px=6, wave_wavelength_px=30, L_wave_freq=0.5)
+    "TYPE5": { #syn.generate_synthetic_shg(seed=10, G_align=0.95, G_density=0.7, G_curve=0, G_conn=1, L_align=0.6, L_density=0.4, L_conn=1, L_curve=0.6, spline_length=60, spline_num=1200, wave_amplitude_px=6, wave_wavelength_px=30, L_wave_freq=0.5)
 
         "label": "Aligned wavy fibers",
         "color": "#22d3ee",
@@ -607,12 +612,12 @@ PRESETS = {
             "num_fibers":    1200,
             "spline_length": 60,
             "thickness":     2.0,
-            "wave_amplitude_px": 6,
-            "wave_wavelength_px": 30
+            "wave_amplitude_px": 20, # was 6
+            "wave_wavelength_px": 50 # was 30
         },
     },
-    # "ORANGE": {
-    #     "label": "ORANGE",
+    # "TYPE6": {
+    #     "label": "Sparse unaligned fibers",
     #     "color": "#fb923c",
     #     "desc":  "Balanced : test configuration",
     #     "params": {
@@ -627,10 +632,84 @@ PRESETS = {
     #         "thickness":     2.5,
     #     },
     # },
+
+    "TYPE7": {
+        "label": "Highly aligned, dense, wavy fibers",
+        "color": "#fb923c",
+        "desc":  "Highly aligned, dense, wavy fibers",
+        "params": {
+            "seed":          10,
+            "G_align":       0.5,
+            "G_density":     0.7,
+            "G_conn":        1,
+            "L_align":       0.8,
+            "G_curve":       0.5,
+            "L_curve":       0,
+            "L_conn":        0,
+            "num_fibers":    1800,
+            "spline_length": 100,
+            "thickness":     2.0,
+        },
+    },
+
+    "TYPE8": {
+        "label": "Short, wavy fibers",
+        "color": "#fb923c",
+        "desc":  "3000 short, wavy fibers",
+        "params": {
+            "seed":          10,
+            "G_align":       0.3,
+            "G_density":     0.4,
+            "G_conn":        0.9,
+            "L_align":       0.8,
+            "G_curve":       0,
+            "L_curve":       0.6,
+            "L_conn":        1,
+            "num_fibers":    3000,
+            "spline_length": 20,
+            "thickness":     2.0,
+            "wave_amplitude_px": 6,
+            "wave_wavelength_px": 40 # was 30
+        },
+    },
+
+    # "TYPE9": {
+    #     "label": "Short, wavy fibers",
+    #     "color": "#fb923c",
+    #     "desc":  "3000 short, wavy fibers",
+    #     "params": {
+    #         "seed":          10,
+    #         "G_align":       0.3,
+    #         "G_density":     0.4,
+    #         "G_conn":        0.9,
+    #         "L_align":       0.8,
+    #         "G_curve":       0,
+    #         "L_curve":       0.6,
+    #         "L_conn":        1,
+    #         "num_fibers":    3000,
+    #         "spline_length": 20,
+    #         "thickness":     2.0,
+    #         "wave_amplitude_px": 6,
+    #         "wave_wavelength_px": 40 # was 30
+    #     },
+    # },
 }
 
+
+
 # Reference images and classifications supplied by the lab.
-PRESET_IMAGES = [{'key': 'RED', 'label': 'Type 1', 'classification': 'Normal', 'image': 'Type1_Normal.png'}, {'key': 'YELLOW_BAD', 'label': 'Type 2', 'classification': 'Normal', 'image': 'Type2_Normal.png'}, {'key': 'YELLOW_GOOD', 'label': 'Type 3', 'classification': 'Normal', 'image': 'Type3_Normal.png'}, {'key': 'INTERESTING', 'label': 'Type 4', 'classification': 'Normal', 'image': 'Type4_Normal.png'}, {'key': 'CYAN', 'label': 'Type 5', 'classification': 'High Grade Serous Type I', 'image': 'Type5_High_Grade_Serous_Type_I.png'}, {'key': 'TYPE6', 'label': 'Type 6', 'classification': 'Benign', 'image': 'Type6_Benign.png'}, {'key': 'TYPE7', 'label': 'Type 7', 'classification': 'Endometriod Type I', 'image': 'Type7_Endometriod_Type_I.png'}, {'key': 'TYPE8', 'label': 'Type 8', 'classification': 'High Grade Serous Type I', 'image': 'Type8_High_Grade_Serous_Type_I.png'}, {'key': 'TYPE9', 'label': 'Type 9', 'classification': 'Low Grade Serous Type I', 'image': 'Type9_Low_Grade_Serous_Type_I.png'}]
+PRESET_IMAGES = [
+    {'key': 'TYPE1', 'label': 'Type 1', 'classification': 'Normal', 'image': 'Type1_Normal.png'}, 
+    {'key': 'TYPE2', 'label': 'Type 2', 'classification': 'Normal', 'image': 'Type2_Normal.png'}, 
+    {'key': 'TYPE3', 'label': 'Type 3', 'classification': 'Normal', 'image': 'Type3_Normal.png'}, 
+    {'key': 'TYPE4', 'label': 'Type 4', 'classification': 'Normal', 'image': 'Type4_Normal.png'}, 
+    {'key': 'TYPE5', 'label': 'Type 5', 'classification': 'High Grade Serous Type I', 'image': 'Type5_High_Grade_Serous_Type_I.png'}, 
+    {'key': 'TYPE6', 'label': 'Type 6', 'classification': 'Benign', 'image': 'Type6_Benign.png'}, 
+    {'key': 'TYPE7', 'label': 'Type 7', 'classification': 'Endometriod Type I', 'image': 'Type7_Endometriod_Type_I.png'}, 
+    {'key': 'TYPE8', 'label': 'Type 8', 'classification': 'High Grade Serous Type I', 'image': 'Type8_High_Grade_Serous_Type_I.png'}, 
+    {'key': 'TYPE9', 'label': 'Type 9', 'classification': 'Low Grade Serous Type I', 'image': 'Type9_Low_Grade_Serous_Type_I.png'}
+]
+
 for reference in PRESET_IMAGES:
     key = reference["key"]
     if key not in PRESETS:
