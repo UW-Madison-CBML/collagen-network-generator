@@ -162,7 +162,6 @@ st.markdown(f"""
 [data-testid="stMainBlockContainer"] {{ padding: 4.5rem 2.5rem 2rem; max-width: 1900px; }}
 .research-header {{ display:flex; align-items:center; justify-content:space-between;
   gap:24px; flex-wrap:wrap; border-bottom:3px solid #c5050c; padding-bottom:20px; margin-bottom:20px; }}
-.research-header h1 {{ font-size:36px; font-weight:600; padding:0; margin:0; line-height:1.25; }}
 .research-header h1 {{ font-size:32px; font-weight:600; padding:0; margin:0; line-height:1.25; }}
 .research-header p {{ margin:6px 0 0; font-size:16px; color:var(--shg-muted); }}
 .research-header .uw-logo {{ width:190px; height:auto; }}
