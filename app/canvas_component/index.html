@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700&family=Red+Hat+Text:wght@400;500;600;700&display=swap');
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background:var(--shg-bg, #ffffff); color:var(--shg-text, #0f172a); font-family:var(--shg-font, Inter,system-ui,sans-serif); overflow-x:hidden; user-select:none;
        overscroll-behavior: none; }
@@ -97,6 +98,22 @@ input[type=range]:focus-visible, button:focus-visible { outline:2px solid #c5050
   border-radius:4px; min-height:44px; padding:8px 12px; font-weight:500; }
 .wp-del:hover { border-color:#c5050c; background:#c5050c0a; }
 .sl-row { grid-template-columns:auto minmax(50px,1fr) 30px; gap:8px; flex:1 1 210px; padding:6px 0; }
+
+/* Match native Streamlit controls without changing scientific color scales. */
+.btn, .save-btn, .wp-del { color:var(--shg-text); background:var(--shg-bg);
+  border:1.5px solid var(--shg-border); border-radius:4px; font:500 16px/1.4 "Red Hat Text",Arial,sans-serif;
+  padding:6px 11px; min-height:44px; }
+.btn:hover, .save-btn:hover, .wp-del:hover { color:#c5050c; border-color:#c5050c; background:var(--shg-surface); }
+.btn.on-paint, .btn.on-erase, .btn.on-vec, .btn.on-place, .btn.on-move, .btn.on-del {
+  color:#c5050c; border-color:#c5050c; background:#c5050c12; }
+.sl-lbl { color:var(--shg-text); }
+input[type=range].purple::-webkit-slider-thumb { background:#c5050c; }
+#mapFiles { padding:0; border:1px solid var(--shg-border); border-radius:4px; }
+#mapFiles summary { padding:12px; min-height:48px; font:600 17px/1.4 "Red Hat Display",Arial,sans-serif; }
+#mapFiles summary:hover { background:var(--shg-surface); }
+#mapFiles[open] summary { border-bottom:1px solid var(--shg-border); background:var(--shg-surface); }
+#mapFiles .save-row { margin:0; padding:16px 12px 12px; }
+.wp-title { font-family:"Red Hat Display",Arial,sans-serif; }
 </style>
 </head>
 <body>
@@ -249,9 +266,9 @@ function applyTheme(theme){
   root.style.setProperty("--shg-bg",theme?.backgroundColor||(isDark?"#0e1117":"#ffffff"));
   root.style.setProperty("--shg-surface",theme?.secondaryBackgroundColor||(isDark?"#262730":"#f0f2f6"));
   root.style.setProperty("--shg-text",theme?.textColor||(isDark?"#fafafa":"#31333f"));
-  root.style.setProperty("--shg-muted",`color-mix(in srgb, ${theme?.textColor||(isDark?"#fafafa":"#31333f")} 65%, ${theme?.backgroundColor||(isDark?"#0e1117":"#ffffff")})`);
-  root.style.setProperty("--shg-border",`color-mix(in srgb, ${theme?.textColor||(isDark?"#fafafa":"#31333f")} 18%, ${theme?.backgroundColor||(isDark?"#0e1117":"#ffffff")})`);
-  if(theme?.font) root.style.setProperty("--shg-font",theme.font);
+  root.style.setProperty("--shg-muted",`color-mix(in srgb, ${theme?.textColor||(isDark?"#fafafa":"#31333f")} 80%, ${theme?.backgroundColor||(isDark?"#0e1117":"#ffffff")})`);
+  root.style.setProperty("--shg-border",`color-mix(in srgb, ${theme?.textColor||(isDark?"#fafafa":"#31333f")} 24%, ${theme?.backgroundColor||(isDark?"#0e1117":"#ffffff")})`);
+  root.style.setProperty("--shg-font", '"Red Hat Text", Arial, sans-serif');
 }
 
 function loadB64Into(b64, buf, size){
