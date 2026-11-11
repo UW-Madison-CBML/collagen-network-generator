@@ -124,6 +124,14 @@ input[type=range]:focus-visible, button:focus-visible { outline:2px solid #c5050
 </div>
 
 <script>
+// Use UTC for both browser and Python downloads, independent of server location.
+function timestampedFilename(filename, now = new Date()) {
+  const pad = value => String(value).padStart(2, "0");
+  const stamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth()+1)}${pad(now.getUTCDate())}_${pad(now.getUTCHours())}_${pad(now.getUTCMinutes())}_${pad(now.getUTCSeconds())}`;
+  const dot = filename.lastIndexOf(".");
+  return dot < 0 ? `${filename}_${stamp}` : `${filename.slice(0,dot)}_${stamp}${filename.slice(dot)}`;
+}
+
 // ── Streamlit protocol ────────────────────────────────────────────────────────
 function toStreamlit(value) {
   window.parent.postMessage({ isStreamlitMessage:true, type:"streamlit:setComponentValue", value, dataType:"json" }, "*");
@@ -277,7 +285,7 @@ function buildSaveRow(){
     };
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);
-    const a=document.createElement("a"); a.href=url; a.download="shg_maps.json"; a.click();
+    const a=document.createElement("a"); a.href=url; a.download=timestampedFilename("shg_maps.json"); a.click();
     setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
 
@@ -358,8 +366,9 @@ function downloadFieldPNG(which){
     }
   }
   ctx.putImageData(imgD,0,0);
+  if(which==="vector") drawVectorOverlay(ctx);
   const a=document.createElement("a"); a.href=tmp.toDataURL("image/png");
-  a.download=which+"_field.png"; a.click();
+  a.download=timestampedFilename(which+"_field.png"); a.click();
 }
 
 function hsvToRgb(h,s,v){

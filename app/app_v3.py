@@ -3,6 +3,7 @@ SHG Fiber Simulator : app.py
 Custom canvas component with density painting, vector field painting, and well placement.
 """
 import base64, io, json, os
+from datetime import datetime, timezone
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -990,6 +991,7 @@ with col_mid:
     with output_slot.container():
         # ── Display ────────────────────────────────────────────────────────────────
         if st.session_state.shg_image is not None:
+            download_timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H_%M_%S")
             image_tab, paths_tab = st.tabs(["SHG image", "Fiber paths"])
             with image_tab:
                 img_arr = st.session_state.shg_image
@@ -1001,13 +1003,13 @@ with col_mid:
                         (img_arr-img_arr.min())/(img_arr.max()-img_arr.min()+1e-8)*255).astype(np.uint8)
                     buf = io.BytesIO(); Image.fromarray(norm).save(buf,format="PNG")
                     st.download_button("↓ SHG PNG", data=buf.getvalue(),
-                        file_name=f"shg_{st.session_state.active_params.get('seed',0)}.png",
+                        file_name=f"shg_{st.session_state.active_params.get('seed',0)}_{download_timestamp}.png",
                         mime="image/png", width='stretch')
                 with c2:
                     st.download_button("↓ Splines JSON",
                         data=json.dumps({"parameters":st.session_state.active_params,
                                          "splines":[s.tolist() for s in (st.session_state.shg_splines or [])]},indent=2),
-                        file_name=f"shg_splines_{st.session_state.active_params.get('seed',0)}.json",
+                        file_name=f"shg_splines_{st.session_state.active_params.get('seed',0)}_{download_timestamp}.json",
                         mime="application/json", width='stretch')
 
                 with st.expander("Rendered parameters"):
@@ -1057,7 +1059,7 @@ with col_mid:
                     buf2 = io.BytesIO(); fig2.savefig(buf2,format="png",bbox_inches="tight",pad_inches=0,facecolor="#0d1117")
                     plt.close(fig2); buf2.seek(0)
                     st.download_button("↓ Preview PNG", data=buf2.getvalue(),
-                        file_name="fiber_paths.png", mime="image/png", width='stretch')
+                        file_name=f"fiber_paths_{download_timestamp}.png", mime="image/png", width='stretch')
                 with c4:
                     # Download vector field as numpy
                     vf_export = {
@@ -1066,7 +1068,7 @@ with col_mid:
                         "shape": list(st.session_state.shg_Qx.shape),
                     }
                     st.download_button("↓ Vector JSON", data=json.dumps(vf_export),
-                        file_name="vector_field.json", mime="application/json", width='stretch')
+                        file_name=f"vector_field_{download_timestamp}.json", mime="application/json", width='stretch')
         else:
             st.markdown("""
             <div class="output-empty">Select Render image to generate an SHG image.<br>
