@@ -154,12 +154,32 @@ ACCENT = "#cc1543"
 st.set_page_config(page_title="SHG Simulator", layout="wide", page_icon="assets/uw-logo-vertical-color-web-digital.png")
 st.markdown(f"""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700&family=Red+Hat+Text:wght@400;500;600;700&display=swap');
 :root {{
   --shg-surface: var(--secondary-background-color, #f7f7f7);
-  --shg-text: var(--text-color, #222222);
-  --shg-muted: color-mix(in srgb, var(--text-color, #222222) 80%, var(--background-color, #ffffff));
-  --shg-border: color-mix(in srgb, var(--text-color, #222222) 24%, var(--background-color, #ffffff));
+  --shg-text: var(--text-color, #31333f);
+  --shg-muted: color-mix(in srgb, var(--text-color, #31333f) 80%, var(--background-color, #ffffff));
+  --shg-border: color-mix(in srgb, var(--text-color, #31333f) 24%, var(--background-color, #ffffff));
 }}
+[data-testid="stMain"] p, [data-testid="stMain"] h1, [data-testid="stMain"] h2,
+[data-testid="stMain"] h3, [data-testid="stMain"] input, [data-testid="stMain"] label,
+[data-testid="stMain"] button, .research-header, .research-footer, .parameter-label,
+.preset-status, [role="tooltip"] {{ font-family:"Red Hat Text", Arial, sans-serif!important; }}
+[data-testid="stButton"] button, [data-testid="stDownloadButton"] button {{
+  color:var(--shg-text); background:var(--background-color,#fff); border:1.5px solid var(--shg-border);
+  font-size:16px; font-weight:500; line-height:1.4; }}
+[data-testid="stButton"] button p, [data-testid="stDownloadButton"] button p {{ font-weight:500; }}
+[data-testid="stButton"] button:hover, [data-testid="stDownloadButton"] button:hover {{
+  border-color:#c5050c; color:#c5050c; background:var(--shg-surface); }}
+[data-testid="stButton"] button:disabled, [data-testid="stDownloadButton"] button:disabled {{
+  opacity:0.55; cursor:not-allowed; }}
+[data-testid="stExpander"] {{ border-color:var(--shg-border); }}
+[data-testid="stExpander"] summary {{ color:var(--shg-text); background:var(--background-color,#fff); }}
+[data-testid="stExpander"] summary:hover {{ background:var(--shg-surface); }}
+[data-testid="stTabs"] button[aria-selected="true"] {{ color:#c5050c; }}
+[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{ background:#c5050c; }}
+[data-testid="stMain"] h1, [data-testid="stMain"] h2, [data-testid="stMain"] h3,
+[data-testid="stExpander"] summary p {{ font-family:"Red Hat Display", Arial, sans-serif!important; }}
 [data-testid="stMainBlockContainer"] {{ padding: 4.5rem 2.5rem 2rem; max-width: 1900px; }}
 .research-header {{ display:flex; align-items:center; justify-content:space-between;
   gap:24px; flex-wrap:wrap; border-bottom:3px solid #c5050c; padding-bottom:20px; margin-bottom:20px; }}
@@ -191,6 +211,14 @@ button:focus-visible, input:focus-visible, summary:focus-visible {{ outline:3px 
 button[aria-label^="Help for"] {{ color:#c5050c; min-width:28px; min-height:28px; }}
 button[aria-label^="Help for"] svg {{ width:22px; height:22px; }}
 [data-baseweb="select"] *, [role="listbox"] *, [role="option"] {{ font-size:17px!important; line-height:1.4!important; }}
+/* Match the canvas toolbar's spacing and button dimensions. */
+.st-key-shg_output_controls, .st-key-path_output_controls {{ padding-top:10px; gap:14px; }}
+.st-key-shg_output_controls [data-testid="stDownloadButton"] button,
+.st-key-path_output_controls [data-testid="stDownloadButton"] button {{
+  height:44px; min-height:44px; padding:6px 11px; font-weight:500;
+  border:1.5px solid var(--shg-border); border-radius:4px; }}
+.st-key-shg_output_controls [data-testid="stDownloadButton"] button p,
+.st-key-path_output_controls [data-testid="stDownloadButton"] button p {{ font-size:16px; font-weight:500; }}
 [data-testid="stTabs"] [role="tablist"] {{ order:2; }}
 [data-testid="stTabs"] [role="tabpanel"] {{ order:1; padding-top:0; }}
 [role="tooltip"] {{ font-size:16px; line-height:1.5; }}
@@ -231,7 +259,7 @@ st.markdown("""
   font-size:17px!important; line-height:1.4!important;
 }
 [data-testid="stTooltipContent"] *, [data-baseweb="tooltip"] *, [role="tooltip"] * {
-  font-size:17px!important; line-height:1.5!important;
+  font-size:16px!important; line-height:1.5!important;
 }
 .preset-description { font-size:16px; line-height:1.5; color:var(--shg-text); margin:0 0 12px; }
 </style>
@@ -997,23 +1025,24 @@ with col_mid:
                 img_arr = st.session_state.shg_image
                 st.image(img_arr, clamp=True, width='stretch')
 
-                c1, c2 = st.columns(2, gap="small")
-                with c1:
-                    norm = img_arr if img_arr.dtype==np.uint8 else (
-                        (img_arr-img_arr.min())/(img_arr.max()-img_arr.min()+1e-8)*255).astype(np.uint8)
-                    buf = io.BytesIO(); Image.fromarray(norm).save(buf,format="PNG")
-                    st.download_button("↓ SHG PNG", data=buf.getvalue(),
-                        file_name=f"shg_{st.session_state.active_params.get('seed',0)}_{download_timestamp}.png",
-                        mime="image/png", width='stretch')
-                with c2:
-                    st.download_button("↓ Splines JSON",
-                        data=json.dumps({"parameters":st.session_state.active_params,
-                                         "splines":[s.tolist() for s in (st.session_state.shg_splines or [])]},indent=2),
-                        file_name=f"shg_splines_{st.session_state.active_params.get('seed',0)}_{download_timestamp}.json",
-                        mime="application/json", width='stretch')
+                with st.container(key="shg_output_controls"):
+                    c1, c2 = st.columns(2, gap="small")
+                    with c1:
+                        norm = img_arr if img_arr.dtype==np.uint8 else (
+                            (img_arr-img_arr.min())/(img_arr.max()-img_arr.min()+1e-8)*255).astype(np.uint8)
+                        buf = io.BytesIO(); Image.fromarray(norm).save(buf,format="PNG")
+                        st.download_button("↓ SHG PNG", data=buf.getvalue(),
+                            file_name=f"shg_{st.session_state.active_params.get('seed',0)}_{download_timestamp}.png",
+                            mime="image/png", width='stretch')
+                    with c2:
+                        st.download_button("↓ Splines JSON",
+                            data=json.dumps({"parameters":st.session_state.active_params,
+                                             "splines":[s.tolist() for s in (st.session_state.shg_splines or [])]},indent=2),
+                            file_name=f"shg_splines_{st.session_state.active_params.get('seed',0)}_{download_timestamp}.json",
+                            mime="application/json", width='stretch')
 
-                with st.expander("Rendered parameters"):
-                    st.json(st.session_state.active_params)
+                    with st.expander("Rendered parameters"):
+                        st.json(st.session_state.active_params)
 
             with paths_tab:
                 _ss("preview_density", False)
@@ -1035,40 +1064,40 @@ with col_mid:
                 st.pyplot(fig, width='stretch')
                 plt.close(fig)
 
-                st.caption("Colors distinguish paths; they do not represent a measured property.")
-                # Visibility checkboxes
-                cb1, cb2, cb3 = st.columns(3)
-                with cb1: st.checkbox("Density", key="preview_density")
-                with cb2: st.checkbox("Directions", key="preview_directions")
-                with cb3: st.checkbox("Fiber paths", key="preview_splines")
+                with st.container(key="path_output_controls"):
+                    # Download orientation field PNG
+                    c3, c4 = st.columns(2, gap="small")
+                    with c3:
+                        fig2, ax2 = plt.subplots(figsize=(5,5), facecolor="#0d1117")
+                        ax2.set_facecolor("#0d1117")
+                        plot_fields(ax=ax2, D=st.session_state.shg_D,
+                                    Qx=st.session_state.shg_Qx, Qy=st.session_state.shg_Qy,
+                                    splines=st.session_state.shg_splines, image_size=CANVAS_SIZE,
+                                    grid_size=st.session_state.shg_grid_size,   # add this
+                                    show_density=st.session_state.preview_density,
+                                    show_quiver=st.session_state.preview_directions,
+                                    show_splines=st.session_state.preview_splines)
+                        fig2.tight_layout(pad=0)
+                        buf2 = io.BytesIO(); fig2.savefig(buf2,format="png",bbox_inches="tight",pad_inches=0,facecolor="#0d1117")
+                        plt.close(fig2); buf2.seek(0)
+                        st.download_button("↓ Preview PNG", data=buf2.getvalue(),
+                            file_name=f"fiber_paths_{download_timestamp}.png", mime="image/png", width='stretch')
+                    with c4:
+                        # Download vector field as numpy
+                        vf_export = {
+                            "Qx": st.session_state.shg_Qx.tolist(),
+                            "Qy": st.session_state.shg_Qy.tolist(),
+                            "shape": list(st.session_state.shg_Qx.shape),
+                        }
+                        st.download_button("↓ Vector JSON", data=json.dumps(vf_export),
+                            file_name=f"vector_field_{download_timestamp}.json", mime="application/json", width='stretch')
+                    with st.expander("Display options"):
+                        cb1, cb2, cb3 = st.columns(3, gap="small")
+                        with cb1: st.checkbox("Density", key="preview_density")
+                        with cb2: st.checkbox("Directions", key="preview_directions")
+                        with cb3: st.checkbox("Fiber paths", key="preview_splines")
+                        st.caption("Colors distinguish paths; they do not represent a measured property.")
 
-
-                # Download orientation field PNG
-                c3, c4 = st.columns(2, gap="small")
-                with c3:
-                    fig2, ax2 = plt.subplots(figsize=(5,5), facecolor="#0d1117")
-                    ax2.set_facecolor("#0d1117")
-                    plot_fields(ax=ax2, D=st.session_state.shg_D,
-                                Qx=st.session_state.shg_Qx, Qy=st.session_state.shg_Qy,
-                                splines=st.session_state.shg_splines, image_size=CANVAS_SIZE,
-                                grid_size=st.session_state.shg_grid_size,   # add this
-                                show_density=st.session_state.preview_density,
-                                show_quiver=st.session_state.preview_directions,
-                                show_splines=st.session_state.preview_splines)
-                    fig2.tight_layout(pad=0)
-                    buf2 = io.BytesIO(); fig2.savefig(buf2,format="png",bbox_inches="tight",pad_inches=0,facecolor="#0d1117")
-                    plt.close(fig2); buf2.seek(0)
-                    st.download_button("↓ Preview PNG", data=buf2.getvalue(),
-                        file_name=f"fiber_paths_{download_timestamp}.png", mime="image/png", width='stretch')
-                with c4:
-                    # Download vector field as numpy
-                    vf_export = {
-                        "Qx": st.session_state.shg_Qx.tolist(),
-                        "Qy": st.session_state.shg_Qy.tolist(),
-                        "shape": list(st.session_state.shg_Qx.shape),
-                    }
-                    st.download_button("↓ Vector JSON", data=json.dumps(vf_export),
-                        file_name=f"vector_field_{download_timestamp}.json", mime="application/json", width='stretch')
         else:
             st.markdown("""
             <div class="output-empty">Select Render image to generate an SHG image.<br>
