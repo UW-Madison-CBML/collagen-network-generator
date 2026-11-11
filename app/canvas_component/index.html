@@ -366,6 +366,7 @@ function downloadFieldPNG(which){
     }
   }
   ctx.putImageData(imgD,0,0);
+  if(which==="vector") drawVectorOverlay(ctx);
   const a=document.createElement("a"); a.href=tmp.toDataURL("image/png");
   a.download=timestampedFilename(which+"_field.png"); a.click();
 }
