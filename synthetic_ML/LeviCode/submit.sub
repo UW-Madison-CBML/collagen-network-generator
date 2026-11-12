@@ -1,0 +1,31 @@
+Universe   = container
+container_image = docker://lsvaren/transformers2
+arguments = $(seed)
+Executable = run.sh
+
+transfer_input_files = inference.py, train.py, config.yml, SHG_model.py, dataloader.py, Opacity.py, Rasterize.py, SplineSample.py,SyntheticGen.py,VectorField.py, vf_viz.py
+
+#+WantGPULab = true
++WantFlock = true
+Requirements = (Target.HasCHTCStaging == true) && (Machine != "gpu4003.chtc.wisc.edu")
+Requirements = (Machine == "bhaskargpu4000.chtc.wisc.edu")
+gpus_minimum_capability = 8.0
+gpus_minimum_memory = 30 GB
+request_memory = 130 GB
+request_disk = 50 GB
+request_cpus = 16
+request_gpus = 1
+
+environment = "TRANSFORMERS_CACHE=/tmp/huggingface_cache \
+               HF_HOME=/tmp/huggingface_home \
+               MPLCONFIGDIR=/tmp/matplotlib_cache \
+               WANDB_DIR=/tmp/wandb \
+               WANDB_CONFIG_DIR=/tmp/wandb \
+               WANDB_CACHE_DIR=/tmp/wandb "
+
+batch_name = SHG_train
+output = SHG_train.out
+error  = SHG_train.err
+log    = SHG_train.log
+
+queue

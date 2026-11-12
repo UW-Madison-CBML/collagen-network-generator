@@ -1,0 +1,21 @@
+/usr/local/lib/python3.10/dist-packages/scipy/interpolate/_fitpack_repro.py:700: RuntimeWarning: error. a theoretically impossible result was found during
+the iteration process for finding a smoothing spline with
+fp = s. probably causes : s too small.
+there is an approximation returned but the corresponding
+weighted sum of squared residuals does not satisfy the
+condition abs(fp-s)/s < tol.
+
+  _ = root_rati(f, p, bracket, acc)
+Traceback (most recent call last):
+  File "/var/lib/condor/execute/slot1/dir_2309025/scratch/SHG_generation.py", line 64, in main
+    pickle.dump(res, f)
+OSError: [Errno 122] Disk quota exceeded
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/condor/execute/slot1/dir_2309025/scratch/SHG_generation.py", line 75, in <module>
+    main(args)
+  File "/var/lib/condor/execute/slot1/dir_2309025/scratch/SHG_generation.py", line 63, in main
+    with open(f"{save_dir}/synthetic_{save}.pkl", "wb") as f:
+OSError: [Errno 122] Disk quota exceeded
