@@ -1,0 +1,16 @@
+/usr/local/lib/python3.10/dist-packages/scipy/interpolate/_fitpack_repro.py:700: RuntimeWarning: error. a theoretically impossible result was found during
+the iteration process for finding a smoothing spline with
+fp = s. probably causes : s too small.
+there is an approximation returned but the corresponding
+weighted sum of squared residuals does not satisfy the
+condition abs(fp-s)/s < tol.
+
+  _ = root_rati(f, p, bracket, acc)
+/usr/local/lib/python3.10/dist-packages/scipy/interpolate/_fitpack_repro.py:700: RuntimeWarning: error. the maximal number of iterations maxit (set to 20
+by the program) allowed for finding a smoothing spline
+with fp=s has been reached. probably causes : s too small
+there is an approximation returned but the corresponding
+weighted sum of squared residuals does not satisfy the
+condition abs(fp-s)/s < tol.
+
+  _ = root_rati(f, p, bracket, acc)
