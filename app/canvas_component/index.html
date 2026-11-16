@@ -281,6 +281,68 @@ function loadB64Into(b64, buf, size){
   }catch(e){}
 }
 
+// NumPy v1 arrays in an uncompressed ZIP archive (.npz), without pickle or base64.
+function numpyArray(values, shape, dtype="<f4") {
+  const tuple = shape.length ? shape.join(", ") + (shape.length === 1 ? "," : "") : "";
+  let header = `{'descr': '${dtype}', 'fortran_order': False, 'shape': (${tuple}), }`;
+  header += " ".repeat((64 - ((10 + header.length + 1) % 64)) % 64) + "\n";
+  const bytes = new Uint8Array(10 + header.length + values.length * 4);
+  bytes.set([0x93,78,85,77,80,89,1,0]);
+  const view = new DataView(bytes.buffer);
+  view.setUint16(8, header.length, true);
+  bytes.set(new TextEncoder().encode(header), 10);
+  values.forEach((value, i) => {
+    const offset = 10 + header.length + i * 4;
+    if (dtype === "<i4") view.setInt32(offset, value, true);
+    else view.setFloat32(offset, value, true);
+  });
+  return bytes;
+}
+function numpyArchive(entries) {
+  const parts = [], directory = [];
+  let offset = 0, directorySize = 0;
+  for (const [name, data] of Object.entries(entries)) {
+    const filename = new TextEncoder().encode(name + ".npy");
+    let crc = 0xffffffff;
+    for (const byte of data) {
+      crc ^= byte;
+      for (let bit=0; bit<8; bit++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+    }
+    crc = (crc ^ 0xffffffff) >>> 0;
+    const local = new Uint8Array(30 + filename.length), lv = new DataView(local.buffer);
+    lv.setUint32(0, 0x04034b50, true); lv.setUint16(4, 20, true);
+    lv.setUint16(12, 33, true); // ZIP date: 1980-01-01
+    lv.setUint32(14, crc, true); lv.setUint32(18, data.length, true); lv.setUint32(22, data.length, true);
+    lv.setUint16(26, filename.length, true); local.set(filename, 30);
+    const central = new Uint8Array(46 + filename.length), cv = new DataView(central.buffer);
+    cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true);
+    cv.setUint16(14, 33, true); cv.setUint32(16, crc, true);
+    cv.setUint32(20, data.length, true); cv.setUint32(24, data.length, true);
+    cv.setUint16(28, filename.length, true); cv.setUint32(42, offset, true); central.set(filename, 46);
+    parts.push(local, data); directory.push(central);
+    offset += local.length + data.length; directorySize += central.length;
+  }
+  const end = new Uint8Array(22), ev = new DataView(end.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(8, directory.length, true); ev.setUint16(10, directory.length, true);
+  ev.setUint32(12, directorySize, true); ev.setUint32(16, offset, true);
+  return new Blob([...parts, ...directory, end], {type:"application/octet-stream"});
+}
+function downloadNumpyMaps() {
+  const blob = numpyArchive({
+    canvas_size: numpyArray([N], [], "<i4"),
+    density: numpyArray(densityF32, [N,N]),
+    vec_qx: numpyArray(directedToDoubleAngle("x"), [N,N]),
+    vec_qy: numpyArray(directedToDoubleAngle("y"), [N,N]),
+    vec_mag: numpyArray(vecMagF32, [N,N]),
+    // Guide columns: x, y, rx, ry (pixels), angle (degrees).
+    wells: numpyArray(wells.flatMap(w => [w.x,w.y,w.rx,w.ry,w.angle]), [wells.length,5]),
+  });
+  const url = URL.createObjectURL(blob), a = document.createElement("a");
+  a.href = url; a.download = timestampedFilename("shg_maps.npz"); a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 // ── Save row ──────────────────────────────────────────────────────────────────
 function buildSaveRow(){
   const row=document.getElementById("saveRow");
@@ -348,7 +410,11 @@ function buildSaveRow(){
   btnDlV.textContent="Direction PNG";
   btnDlV.addEventListener("click",()=>downloadFieldPNG("vector"));
 
-  row.append(btnSave, fileInp, btnLoad, btnDlD, btnDlV);
+  const btnNumpy=document.createElement("button"); btnNumpy.className="save-btn";
+  btnNumpy.textContent="Save NumPy maps";
+  btnNumpy.title="Download map arrays and guides as a NumPy .npz archive";
+  btnNumpy.addEventListener("click", downloadNumpyMaps);
+  row.append(btnSave, fileInp, btnLoad, btnDlD, btnDlV, btnNumpy);
 }
 
 // Convert in-memory directed (cosθ,sinθ) → double-angle Float32Array for Python
